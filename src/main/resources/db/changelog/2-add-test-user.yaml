@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: manufabri91
+      comment: "Insert test user"
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  value: "dp1KO1qfvmUlsEtUrTCDWSnPRxP2"
+              - column:
+                  name: email
+                  value: "manuelnfabri@gmail.com"
+              - column:
+                  name: first_name
+                  value: "Manuel N."
+              - column:
+                  name: last_name
+                  value: "Fabri"
+              - column:
+                  name: username
+                  value: "manuelnfabri"

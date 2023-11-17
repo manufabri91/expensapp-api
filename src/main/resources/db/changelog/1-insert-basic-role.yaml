@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: manufabri91
+      comment: "Insert BASIC_USER role to allow users creation"
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: name
+                  value: "BASIC_USER"
+              - column:
+                  name: description
+                  value: "FREE USER"

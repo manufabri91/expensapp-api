@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/0-init-tables.yaml
+  - include:
+      file: db/changelog/1-insert-basic-role.yaml
+  - include:
+      file: db/changelog/2-add-test-user.yaml
+  - include:
+      file: db/changelog/3-add-role-to-test-user.yaml

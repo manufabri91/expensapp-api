@@ -1,0 +1,433 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0-1
+      author: manuelnfabri
+      comment: "Create tables"
+      changes:
+        - createTable:
+            tableName: accounts
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BIT(1)
+              - column:
+                  name: deleted_at
+                  type: datetime
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: currency
+                  type: TINYINT(3)
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0.00
+                  name: initial_balance
+                  type: DECIMAL(10, 2)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(100)
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+        - createTable:
+            tableName: categories
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BIT(1)
+              - column:
+                  name: deleted_at
+                  type: datetime
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  name: color
+                  type: VARCHAR(255)
+              - column:
+                  name: icon_name
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(100)
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+        - createTable:
+            tableName: subcategories
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BIT(1)
+              - column:
+                  name: deleted_at
+                  type: datetime
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(100)
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+              - column:
+                  name: parent_category
+                  type: BIGINT
+        - createTable:
+            tableName: transactions
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BIT(1)
+              - column:
+                  name: deleted_at
+                  type: datetime
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: amount
+                  type: DECIMAL(38, 2)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: description
+                  type: VARCHAR(80)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: event_date
+                  type: datetime
+              - column:
+                  name: account_id
+                  type: BIGINT
+              - column:
+                  name: category
+                  type: BIGINT
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+              - column:
+                  name: subcategory
+                  type: BIGINT
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+        - createTable:
+            tableName: users_roles
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: role_id
+                  type: BIGINT
+  - changeSet:
+      id: 0-2
+      author: manuelnfabri
+      comment: "Create constraints and indexes"
+      changes:
+        - addUniqueConstraint:
+            columnNames: parent_category, name, owner
+            constraintName: UK971gjls6r9gxk1xqdgh7q5mce
+            tableName: subcategories
+        - addUniqueConstraint:
+            columnNames: owner, name
+            constraintName: UKj0rii5cm3hik221l7uy02tp7o
+            tableName: accounts
+        - addUniqueConstraint:
+            columnNames: owner, name
+            constraintName: UKn4kjo5y2ofs9erm2omqxwvpet
+            tableName: categories
+        - createIndex:
+            columns:
+              - column:
+                  name: account_id
+            indexName: FK20w7wsg13u9srbq3bd7chfxdh
+            tableName: transactions
+        - createIndex:
+            columns:
+              - column:
+                  name: owner
+            indexName: FK267g677k9av0ucsk3d6pu9n65
+            tableName: subcategories
+        - createIndex:
+            columns:
+              - column:
+                  name: user_id
+            indexName: FK2o0jvgh89lemvvo17cbqvdxaa
+            tableName: users_roles
+        - createIndex:
+            columns:
+              - column:
+                  name: subcategory
+            indexName: FK5co8aodl0m31u5lq38s487hcf
+            tableName: transactions
+        - createIndex:
+            columns:
+              - column:
+                  name: category
+            indexName: FKgvxk43lewy4tqyjp5vllgd19e
+            tableName: transactions
+        - createIndex:
+            columns:
+              - column:
+                  name: role_id
+            indexName: FKj6m8fwv7oqv74fcehir1a9ffy
+            tableName: users_roles
+        - createIndex:
+            columns:
+              - column:
+                  name: owner
+            indexName: FKl605roeibkivd2s7aw9dqnm9f
+            tableName: transactions
+  - changeSet:
+      id: 0-3
+      author: manuelnfabri
+      comment: "Create FKs"
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: owner
+            baseTableName: accounts
+            constraintName: FK1vof40bmwxnckdok2d32togmv
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: account_id
+            baseTableName: transactions
+            constraintName: FK20w7wsg13u9srbq3bd7chfxdh
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: accounts
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: owner
+            baseTableName: subcategories
+            constraintName: FK267g677k9av0ucsk3d6pu9n65
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: users_roles
+            constraintName: FK2o0jvgh89lemvvo17cbqvdxaa
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: subcategory
+            baseTableName: transactions
+            constraintName: FK5co8aodl0m31u5lq38s487hcf
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: subcategories
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_category
+            baseTableName: subcategories
+            constraintName: FKbuo5olaejnw9ved8mkd4al1x8
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: categories
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: category
+            baseTableName: transactions
+            constraintName: FKgvxk43lewy4tqyjp5vllgd19e
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: categories
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: role_id
+            baseTableName: users_roles
+            constraintName: FKj6m8fwv7oqv74fcehir1a9ffy
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: roles
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: owner
+            baseTableName: transactions
+            constraintName: FKl605roeibkivd2s7aw9dqnm9f
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: owner
+            baseTableName: categories
+            constraintName: FKogxfku53ednee7sxtsvh50cfo
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true

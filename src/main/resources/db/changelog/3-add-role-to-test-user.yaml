@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: manufabri91
+      comment: "Add role to test user"
+      changes:
+        - insert:
+            tableName: users_roles
+            columns:
+              - column:
+                  name: user_id
+                  value: "dp1KO1qfvmUlsEtUrTCDWSnPRxP2"
+              - column:
+                  name: role_id
+                  value: 1

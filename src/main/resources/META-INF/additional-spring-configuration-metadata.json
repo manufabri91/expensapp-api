@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "firebase.admin-sdk-path",
+      "type": "java.lang.String",
+      "description": "Service Account JSON"
+    },
+    {
+      "name": "firebase.api-key",
+      "type": "java.lang.String",
+      "description": "Firebase service API Key"
+    }
+  ]
+}
