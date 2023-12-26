@@ -1,5 +1,7 @@
 package com.manuelfabri.expenses.service.implementation;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
@@ -115,4 +117,17 @@ public class TransactionServiceImplementation implements TransactionService {
     return this.transactionRepository.findByOwnerAndSubcategoryAndDeletedFalse(user, subcategory).stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
+
+
+  @Override
+  public List<TransactionDto> getMonthlyTransactions(int year, int month) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    OffsetDateTime startDate = OffsetDateTime.of(year, month, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+    return this.transactionRepository.findByOwnerAndEventDateBetweenAndDeletedFalse(user, startDate, endDate).stream()
+        .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
+  }
+
+
+
 }

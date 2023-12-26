@@ -34,6 +34,13 @@ public class TransactionController {
     return new ResponseEntity<>(transactionService.getAllTransactions(), HttpStatus.OK);
   }
 
+  @GetMapping("/{year}/{month}")
+  public ResponseEntity<List<TransactionDto>> getByYearAndMonth(@PathVariable("year") int year,
+      @PathVariable("month") int month) {
+
+    return new ResponseEntity<>(transactionService.getMonthlyTransactions(year, month), HttpStatus.OK);
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<TransactionDto> getById(@PathVariable("id") Long id, Principal principal) {
     return new ResponseEntity<>(transactionService.getById(id), HttpStatus.OK);
