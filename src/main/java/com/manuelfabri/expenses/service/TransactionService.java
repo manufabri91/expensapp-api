@@ -1,6 +1,5 @@
 package com.manuelfabri.expenses.service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import com.manuelfabri.expenses.dto.CreateTransactionDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
