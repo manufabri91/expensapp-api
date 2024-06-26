@@ -2,6 +2,6 @@ spring:
   cloud:
     config:
       uri:
-      - https://configserver.manuelfabri.com/
+        - https://configserver.manuelfabri.com/
 encrypt:
   key: ${DECRYPT_KEY}
