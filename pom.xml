@@ -104,6 +104,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -125,8 +130,8 @@
 				<version>${liquibase.version}</version>
 				<configuration>
 					<driver>com.mysql.cj.jdbc.Driver</driver>
-					<url>jdbc:mysql://localhost:3306/expensapp</url>
-					<username>root</username>
+					<url>jdbc:postgresql://localhost:5433/expensapp</url>
+					<username>postgres</username>
 					<password>admin</password>
 					<outputChangeLogFile>src/main/resources/db/changelog/v-last-changelog.yaml</outputChangeLogFile>
 				</configuration>
