@@ -5,6 +5,7 @@ import com.manuelfabri.expenses.constants.Roles;
 import com.manuelfabri.expenses.dto.FirebaseLoginResponseDto;
 import com.manuelfabri.expenses.dto.UserLoginDto;
 import com.manuelfabri.expenses.dto.UserLoginResponseDto;
+import com.manuelfabri.expenses.dto.UserRefreshTokenResponseDto;
 import com.manuelfabri.expenses.dto.UserRegisterDto;
 import com.manuelfabri.expenses.exception.DependencyException;
 import com.manuelfabri.expenses.model.Role;
@@ -54,5 +55,10 @@ public class AuthServiceImplementation implements AuthService {
     var user = this.login(loginData);
     firebaseService.sendVerificationEmail(user.getToken());
     return user;
+  }
+
+  @Override
+  public UserRefreshTokenResponseDto refresh(String refreshToken) {
+    return UserRefreshTokenResponseDto.fromFirebaseRefreshResponse(firebaseService.refreshToken(refreshToken));
   }
 }
