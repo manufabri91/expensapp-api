@@ -27,12 +27,12 @@ public class SecurityConfig {
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
+  PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     String transactionRouteMatcher = Urls.TRANSACTION + "/**";
     String accountRouteMatcher = Urls.ACCOUNT + "/**";
     String categoryRouteMatcher = Urls.CATEGORY + "/**";

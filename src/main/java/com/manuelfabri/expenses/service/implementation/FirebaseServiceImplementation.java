@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -20,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.manuelfabri.expenses.dto.FirebaseLoginResponseDto;
+import com.manuelfabri.expenses.dto.FirebaseRefreshTokenResponseDto;
 import com.manuelfabri.expenses.dto.UserRegisterDto;
 import com.manuelfabri.expenses.exception.DependencyException;
 import com.manuelfabri.expenses.exception.InvalidLoginException;
@@ -135,6 +138,36 @@ public class FirebaseServiceImplementation implements FirebaseService {
       return FirebaseAuth.getInstance().getUser(uid);
     } catch (FirebaseAuthException e) {
       throw new InvalidLoginException();
+    }
+  }
+
+  @Override
+  public FirebaseRefreshTokenResponseDto refreshToken(String refreshToken) {
+    try {
+      String url = "https://securetoken.googleapis.com/v1/token?key=" + apiKey;
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+      // Create the form data (body)
+      MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+      formData.add("grant_type", "refresh_token");
+      formData.add("refresh_token", refreshToken);
+
+      HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formData, headers);
+      ResponseEntity<FirebaseRefreshTokenResponseDto> response =
+          this.restTemplate.postForEntity(url, entity, FirebaseRefreshTokenResponseDto.class);
+
+      if (response.getStatusCode() != HttpStatus.OK) {
+        throw new InvalidLoginException();
+      }
+
+      return response.getBody();
+
+    } catch (HttpClientErrorException exception) {
+      throw new InvalidLoginException();
+    } catch (RestClientException exception) {
+      throw new DependencyException("Firebase API", exception.getMessage());
     }
   }
 }

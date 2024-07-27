@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.manuelfabri.expenses.dto.CategoryDto;
-import com.manuelfabri.expenses.dto.CreateCategoryDto;
 import com.manuelfabri.expenses.dto.CreateSubcategoryDto;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;

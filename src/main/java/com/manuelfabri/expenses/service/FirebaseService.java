@@ -2,6 +2,7 @@ package com.manuelfabri.expenses.service;
 
 import com.google.firebase.auth.UserRecord;
 import com.manuelfabri.expenses.dto.FirebaseLoginResponseDto;
+import com.manuelfabri.expenses.dto.FirebaseRefreshTokenResponseDto;
 import com.manuelfabri.expenses.dto.UserRegisterDto;
 import com.manuelfabri.expenses.model.FirebaseTokenHolder;
 import com.manuelfabri.expenses.model.Role;
@@ -18,4 +19,5 @@ public interface FirebaseService {
 
   public UserRecord createUserFromRequest(UserRegisterDto userRegisterData, Role startingRole);
 
+  public FirebaseRefreshTokenResponseDto refreshToken(String refreshToken);
 }

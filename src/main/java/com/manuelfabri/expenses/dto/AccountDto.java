@@ -1,8 +1,6 @@
 package com.manuelfabri.expenses.dto;
 
 import java.math.BigDecimal;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 
 import jakarta.validation.constraints.NotBlank;
