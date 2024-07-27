@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import com.google.firebase.auth.FirebaseAuth;
@@ -95,11 +96,14 @@ public class FirebaseServiceImplementation implements FirebaseService {
       ResponseEntity<FirebaseLoginResponseDto> response =
           this.restTemplate.postForEntity(url, entity, FirebaseLoginResponseDto.class);
 
-      if (response.getStatusCode() == HttpStatus.OK) {
-        return response.getBody();
-      } else {
+      if (response.getStatusCode() != HttpStatus.OK) {
         throw new InvalidLoginException();
       }
+
+      return response.getBody();
+
+    } catch (HttpClientErrorException exception) {
+      throw new InvalidLoginException();
     } catch (RestClientException exception) {
       throw new DependencyException("Firebase API", exception.getMessage());
     }

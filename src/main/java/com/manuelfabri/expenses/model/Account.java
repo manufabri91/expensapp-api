@@ -31,8 +31,8 @@ public class Account extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "owner")
   private User owner;
-  @Column(nullable = false, columnDefinition = "DECIMAL(10, 2) default '0.00'")
-  private BigDecimal initialBalance;
+  @Column(nullable = false, precision = 10, scale = 2)
+  private BigDecimal initialBalance = BigDecimal.ZERO;
 
   @Formula("(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.account_id = id) + initial_balance")
   private BigDecimal accountBalance;

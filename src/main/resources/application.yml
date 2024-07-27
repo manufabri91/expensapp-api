@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/expensapp?createDatabaseIfNotExist=true&serverTimezone=UTC
-    username: root
+    url: jdbc:postgresql://localhost:5433/expensapp?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: postgres
     password: admin
   application:
     name: expensapp
@@ -9,7 +9,7 @@ spring:
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
     # Hibernate ddl auto (create, create-drop, validate, update)
     # CREATE: Cada vez que se inicia la app, crea la tabla

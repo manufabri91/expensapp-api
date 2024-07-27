@@ -13,10 +13,10 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
                   name: id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: created_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: created_by
                   type: VARCHAR(255)
@@ -24,16 +24,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: deleted
-                  type: BIT(1)
+                  type: BOOLEAN
               - column:
                   name: deleted_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: deleted_by
                   type: VARCHAR(255)
               - column:
                   name: updated_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: updated_by
                   type: VARCHAR(255)
@@ -41,7 +41,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: currency
-                  type: TINYINT(3)
+                  type: SMALLINT(3)
               - column:
                   constraints:
                     nullable: false
@@ -65,10 +65,10 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
                   name: id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: created_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: created_by
                   type: VARCHAR(255)
@@ -76,16 +76,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: deleted
-                  type: BIT(1)
+                  type: BOOLEAN
               - column:
                   name: deleted_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: deleted_by
                   type: VARCHAR(255)
               - column:
                   name: updated_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: updated_by
                   type: VARCHAR(255)
@@ -112,7 +112,7 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
                   name: id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: description
                   type: VARCHAR(255)
@@ -128,10 +128,10 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
                   name: id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: created_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: created_by
                   type: VARCHAR(255)
@@ -139,16 +139,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: deleted
-                  type: BIT(1)
+                  type: BOOLEAN
               - column:
                   name: deleted_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: deleted_by
                   type: VARCHAR(255)
               - column:
                   name: updated_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: updated_by
                   type: VARCHAR(255)
@@ -162,7 +162,7 @@ databaseChangeLog:
                   type: VARCHAR(255)
               - column:
                   name: parent_category
-                  type: BIGINT
+                  type: BIGSERIAL
         - createTable:
             tableName: transactions
             columns:
@@ -172,10 +172,10 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
                   name: id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: created_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: created_by
                   type: VARCHAR(255)
@@ -183,16 +183,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: deleted
-                  type: BIT(1)
+                  type: BOOLEAN
               - column:
                   name: deleted_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: deleted_by
                   type: VARCHAR(255)
               - column:
                   name: updated_at
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: updated_by
                   type: VARCHAR(255)
@@ -210,19 +210,19 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: event_date
-                  type: datetime
+                  type: TIMESTAMP
               - column:
                   name: account_id
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: category
-                  type: BIGINT
+                  type: BIGSERIAL
               - column:
                   name: owner
                   type: VARCHAR(255)
               - column:
                   name: subcategory
-                  type: BIGINT
+                  type: BIGSERIAL
         - createTable:
             tableName: users
             columns:
@@ -256,7 +256,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: role_id
-                  type: BIGINT
+                  type: BIGSERIAL
   - changeSet:
       id: 0-2
       author: manuelnfabri
