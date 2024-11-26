@@ -15,10 +15,10 @@ databaseChangeLog:
                   name: id
                   type: BIGSERIAL
               - column:
-                  name: created_at
+                  name: createdat
                   type: TIMESTAMP
               - column:
-                  name: created_by
+                  name: createdby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -26,16 +26,16 @@ databaseChangeLog:
                   name: deleted
                   type: BOOLEAN
               - column:
-                  name: deleted_at
+                  name: deletedat
                   type: TIMESTAMP
               - column:
-                  name: deleted_by
+                  name: deletedby
                   type: VARCHAR(255)
               - column:
-                  name: updated_at
+                  name: updatedat
                   type: TIMESTAMP
               - column:
-                  name: updated_by
+                  name: updatedby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -46,7 +46,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   defaultValueNumeric: 0.00
-                  name: initial_balance
+                  name: initialbalance
                   type: DECIMAL(10, 2)
               - column:
                   constraints:
@@ -67,10 +67,10 @@ databaseChangeLog:
                   name: id
                   type: BIGSERIAL
               - column:
-                  name: created_at
+                  name: createdat
                   type: TIMESTAMP
               - column:
-                  name: created_by
+                  name: createdby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -78,22 +78,22 @@ databaseChangeLog:
                   name: deleted
                   type: BOOLEAN
               - column:
-                  name: deleted_at
+                  name: deletedat
                   type: TIMESTAMP
               - column:
-                  name: deleted_by
+                  name: deletedby
                   type: VARCHAR(255)
               - column:
-                  name: updated_at
+                  name: updatedat
                   type: TIMESTAMP
               - column:
-                  name: updated_by
+                  name: updatedby
                   type: VARCHAR(255)
               - column:
                   name: color
                   type: VARCHAR(255)
               - column:
-                  name: icon_name
+                  name: iconname
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -130,10 +130,10 @@ databaseChangeLog:
                   name: id
                   type: BIGSERIAL
               - column:
-                  name: created_at
+                  name: createdat
                   type: TIMESTAMP
               - column:
-                  name: created_by
+                  name: createdby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -141,16 +141,16 @@ databaseChangeLog:
                   name: deleted
                   type: BOOLEAN
               - column:
-                  name: deleted_at
+                  name: deletedat
                   type: TIMESTAMP
               - column:
-                  name: deleted_by
+                  name: deletedby
                   type: VARCHAR(255)
               - column:
-                  name: updated_at
+                  name: updatedat
                   type: TIMESTAMP
               - column:
-                  name: updated_by
+                  name: updatedby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -161,7 +161,7 @@ databaseChangeLog:
                   name: owner
                   type: VARCHAR(255)
               - column:
-                  name: parent_category
+                  name: parentcategory
                   type: BIGSERIAL
         - createTable:
             tableName: transactions
@@ -174,10 +174,10 @@ databaseChangeLog:
                   name: id
                   type: BIGSERIAL
               - column:
-                  name: created_at
+                  name: createdat
                   type: TIMESTAMP
               - column:
-                  name: created_by
+                  name: createdby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -185,16 +185,16 @@ databaseChangeLog:
                   name: deleted
                   type: BOOLEAN
               - column:
-                  name: deleted_at
+                  name: deletedat
                   type: TIMESTAMP
               - column:
-                  name: deleted_by
+                  name: deletedby
                   type: VARCHAR(255)
               - column:
-                  name: updated_at
+                  name: updatedat
                   type: TIMESTAMP
               - column:
-                  name: updated_by
+                  name: updatedby
                   type: VARCHAR(255)
               - column:
                   constraints:
@@ -209,10 +209,10 @@ databaseChangeLog:
               - column:
                   constraints:
                     nullable: false
-                  name: event_date
+                  name: eventdate
                   type: TIMESTAMP
               - column:
-                  name: account_id
+                  name: accountid
                   type: BIGSERIAL
               - column:
                   name: category
@@ -236,10 +236,10 @@ databaseChangeLog:
                   name: email
                   type: VARCHAR(255)
               - column:
-                  name: first_name
+                  name: firstname
                   type: VARCHAR(255)
               - column:
-                  name: last_name
+                  name: lastname
                   type: VARCHAR(255)
               - column:
                   name: username
@@ -250,12 +250,12 @@ databaseChangeLog:
               - column:
                   constraints:
                     nullable: false
-                  name: user_id
+                  name: userid
                   type: VARCHAR(255)
               - column:
                   constraints:
                     nullable: false
-                  name: role_id
+                  name: roleid
                   type: BIGSERIAL
   - changeSet:
       id: 0-2
@@ -263,7 +263,7 @@ databaseChangeLog:
       comment: "Create constraints and indexes"
       changes:
         - addUniqueConstraint:
-            columnNames: parent_category, name, owner
+            columnNames: parentcategory, name, owner
             constraintName: UK971gjls6r9gxk1xqdgh7q5mce
             tableName: subcategories
         - addUniqueConstraint:
@@ -277,7 +277,7 @@ databaseChangeLog:
         - createIndex:
             columns:
               - column:
-                  name: account_id
+                  name: accountid
             indexName: FK20w7wsg13u9srbq3bd7chfxdh
             tableName: transactions
         - createIndex:
@@ -289,7 +289,7 @@ databaseChangeLog:
         - createIndex:
             columns:
               - column:
-                  name: user_id
+                  name: userid
             indexName: FK2o0jvgh89lemvvo17cbqvdxaa
             tableName: users_roles
         - createIndex:
@@ -307,7 +307,7 @@ databaseChangeLog:
         - createIndex:
             columns:
               - column:
-                  name: role_id
+                  name: roleid
             indexName: FKj6m8fwv7oqv74fcehir1a9ffy
             tableName: users_roles
         - createIndex:
@@ -333,7 +333,7 @@ databaseChangeLog:
             referencedTableName: users
             validate: true
         - addForeignKeyConstraint:
-            baseColumnNames: account_id
+            baseColumnNames: accountid
             baseTableName: transactions
             constraintName: FK20w7wsg13u9srbq3bd7chfxdh
             deferrable: false
@@ -355,7 +355,7 @@ databaseChangeLog:
             referencedTableName: users
             validate: true
         - addForeignKeyConstraint:
-            baseColumnNames: user_id
+            baseColumnNames: userid
             baseTableName: users_roles
             constraintName: FK2o0jvgh89lemvvo17cbqvdxaa
             deferrable: false
@@ -377,7 +377,7 @@ databaseChangeLog:
             referencedTableName: subcategories
             validate: true
         - addForeignKeyConstraint:
-            baseColumnNames: parent_category
+            baseColumnNames: parentcategory
             baseTableName: subcategories
             constraintName: FKbuo5olaejnw9ved8mkd4al1x8
             deferrable: false
@@ -399,7 +399,7 @@ databaseChangeLog:
             referencedTableName: categories
             validate: true
         - addForeignKeyConstraint:
-            baseColumnNames: role_id
+            baseColumnNames: roleid
             baseTableName: users_roles
             constraintName: FKj6m8fwv7oqv74fcehir1a9ffy
             deferrable: false

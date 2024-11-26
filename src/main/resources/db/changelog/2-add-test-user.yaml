@@ -14,10 +14,10 @@ databaseChangeLog:
                   name: email
                   value: "manuelnfabri@gmail.com"
               - column:
-                  name: first_name
+                  name: firstname
                   value: "Manuel N."
               - column:
-                  name: last_name
+                  name: lastname
                   value: "Fabri"
               - column:
                   name: username
