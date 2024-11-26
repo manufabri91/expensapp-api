@@ -8,8 +8,8 @@ databaseChangeLog:
             tableName: users_roles
             columns:
               - column:
-                  name: user_id
+                  name: userid
                   value: "dp1KO1qfvmUlsEtUrTCDWSnPRxP2"
               - column:
-                  name: role_id
+                  name: roleid
                   value: 1

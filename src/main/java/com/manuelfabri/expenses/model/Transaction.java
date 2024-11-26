@@ -23,7 +23,7 @@ public class Transaction extends BaseEntity {
   @Column(nullable = false)
   private BigDecimal amount;
   @ManyToOne
-  @JoinColumn(name = "account_id")
+  @JoinColumn(name = "accountid")
   private Account account;
   @ManyToOne
   @JoinColumn(name = "owner")

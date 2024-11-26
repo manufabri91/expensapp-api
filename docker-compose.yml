@@ -18,6 +18,7 @@ services:
       timeout: 5s
       retries: 5
   expensapp_api:
+    # expensapp_api_local:
     depends_on:
       - postgresdb
     build: ./

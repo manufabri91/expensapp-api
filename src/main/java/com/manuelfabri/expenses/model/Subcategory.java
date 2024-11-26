@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity(name = "subcategories")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"parentCategory", "name", "owner"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"parentcategory", "name", "owner"}))
 public class Subcategory extends BaseEntity {
 
   @Id
@@ -23,7 +23,7 @@ public class Subcategory extends BaseEntity {
   @Column(nullable = false, length = 100)
   private String name;
   @ManyToOne
-  @JoinColumn(name = "parentCategory")
+  @JoinColumn(name = "parentcategory")
   private Category parentCategory;
   @OneToMany(mappedBy = "subcategory", cascade = CascadeType.ALL)
   private List<Transaction> transactions;
