@@ -37,17 +37,17 @@ public class SubcategoryController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<SubcategoryDto> getById(@PathVariable("id") Long id) {
+  public ResponseEntity<SubcategoryDto> getById(@PathVariable Long id) {
     return new ResponseEntity<>(subcategoryService.getById(id), HttpStatus.OK);
   }
 
   @GetMapping("/{id}/transactions")
-  public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable("id") Long id) {
+  public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsBySubcategoryId(id), HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<SubcategoryDto> updateCategory(@PathVariable("id") Long id,
+  public ResponseEntity<SubcategoryDto> updateCategory(@PathVariable Long id,
       @RequestBody SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.updateSubcategory(id, subcategoryDto), HttpStatus.OK);
   }
@@ -58,7 +58,7 @@ public class SubcategoryController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<CategoryDto> deleteCategory(@PathVariable("id") Long id) {
+  public ResponseEntity<CategoryDto> deleteCategory(@PathVariable Long id) {
     subcategoryService.deleteSubcategory(id);
     return new ResponseEntity<>(HttpStatus.OK);
   }

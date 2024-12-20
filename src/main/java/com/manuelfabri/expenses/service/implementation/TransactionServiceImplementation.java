@@ -5,6 +5,8 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
@@ -73,7 +75,12 @@ public class TransactionServiceImplementation implements TransactionService {
   public List<TransactionDto> getAllTransactions() {
     return this.transactionRepository.findActive().stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
+  }
 
+  @Override
+  public Page<TransactionDto> getPagedTransactions(Pageable pageable) {
+    return this.transactionRepository.findActivePaged(pageable)
+        .map(transaction -> mapper.map(transaction, TransactionDto.class));
   }
 
   @Override
@@ -127,7 +134,4 @@ public class TransactionServiceImplementation implements TransactionService {
     return this.transactionRepository.findByOwnerAndEventDateBetweenAndDeletedFalse(user, startDate, endDate).stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
-
-
-
 }
