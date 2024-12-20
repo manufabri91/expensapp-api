@@ -8,12 +8,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.AccountDto;
-import com.manuelfabri.expenses.dto.CreateAccountDto;
+import com.manuelfabri.expenses.dto.AccountRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.AccountService;
 import com.manuelfabri.expenses.service.TransactionService;
@@ -46,8 +47,14 @@ public class AccountController {
   }
 
   @PostMapping
-  public ResponseEntity<AccountDto> createAccount(@RequestBody CreateAccountDto accountDto) {
+  public ResponseEntity<AccountDto> createAccount(@RequestBody AccountRequestDto accountDto) {
     return new ResponseEntity<>(accountService.createAccount(accountDto), HttpStatus.CREATED);
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<AccountDto> updateAccount(@PathVariable("id") Long id,
+      @RequestBody AccountRequestDto accountDto) {
+    return new ResponseEntity<>(accountService.updateAccount(id, accountDto), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")

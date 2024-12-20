@@ -2,13 +2,15 @@ package com.manuelfabri.expenses.service;
 
 import java.util.List;
 import com.manuelfabri.expenses.dto.CategoryDto;
-import com.manuelfabri.expenses.dto.CreateCategoryDto;
+import com.manuelfabri.expenses.dto.CategoryRequestDto;
 
 
 public interface CategoryService {
   List<CategoryDto> getAllCategories();
 
-  CategoryDto createCategory(CreateCategoryDto createRequest);
+  CategoryDto createCategory(CategoryRequestDto createRequest);
+
+  CategoryDto updateCategory(Long id, CategoryRequestDto categoryDto);
 
   void deleteCategory(Long id);
 

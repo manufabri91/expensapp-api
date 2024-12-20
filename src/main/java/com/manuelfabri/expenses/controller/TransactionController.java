@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
-import com.manuelfabri.expenses.dto.CreateTransactionDto;
+import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.TransactionService;
 
@@ -47,7 +47,7 @@ public class TransactionController {
   }
 
   @PostMapping
-  public ResponseEntity<TransactionDto> createTransaction(@RequestBody @Valid CreateTransactionDto transactionDto) {
+  public ResponseEntity<TransactionDto> createTransaction(@RequestBody @Valid TransactionRequestDto transactionDto) {
     return new ResponseEntity<>(transactionService.createTransaction(transactionDto), HttpStatus.CREATED);
   }
 

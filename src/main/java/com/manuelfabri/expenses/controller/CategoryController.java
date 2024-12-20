@@ -7,12 +7,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.CategoryDto;
-import com.manuelfabri.expenses.dto.CreateCategoryDto;
+import com.manuelfabri.expenses.dto.CategoryRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.CategoryService;
 import com.manuelfabri.expenses.service.TransactionService;
@@ -39,13 +40,20 @@ public class CategoryController {
     return new ResponseEntity<>(categoryService.getById(id), HttpStatus.OK);
   }
 
+
+  @PutMapping("/{id}")
+  public ResponseEntity<CategoryDto> updateCategory(@PathVariable("id") Long id,
+      @RequestBody CategoryRequestDto categoryDto) {
+    return new ResponseEntity<>(categoryService.updateCategory(id, categoryDto), HttpStatus.OK);
+  }
+
   @GetMapping("/{id}/transactions")
   public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable("id") Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsByCategoryId(id), HttpStatus.OK);
   }
 
   @PostMapping
-  public ResponseEntity<CategoryDto> createCategory(@RequestBody CreateCategoryDto categoryDto) {
+  public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryRequestDto categoryDto) {
     return new ResponseEntity<>(categoryService.createCategory(categoryDto), HttpStatus.CREATED);
   }
 

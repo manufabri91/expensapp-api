@@ -7,12 +7,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.CategoryDto;
-import com.manuelfabri.expenses.dto.CreateSubcategoryDto;
+import com.manuelfabri.expenses.dto.SubcategoryRequestDto;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.SubcategoryService;
@@ -45,8 +46,14 @@ public class SubcategoryController {
     return new ResponseEntity<>(transactionService.getTransactionsBySubcategoryId(id), HttpStatus.OK);
   }
 
+  @PutMapping("/{id}")
+  public ResponseEntity<SubcategoryDto> updateCategory(@PathVariable("id") Long id,
+      @RequestBody SubcategoryRequestDto subcategoryDto) {
+    return new ResponseEntity<>(subcategoryService.updateSubcategory(id, subcategoryDto), HttpStatus.OK);
+  }
+
   @PostMapping
-  public ResponseEntity<SubcategoryDto> createCategory(@RequestBody CreateSubcategoryDto subcategoryDto) {
+  public ResponseEntity<SubcategoryDto> createCategory(@RequestBody SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.createSubcategory(subcategoryDto), HttpStatus.CREATED);
   }
 

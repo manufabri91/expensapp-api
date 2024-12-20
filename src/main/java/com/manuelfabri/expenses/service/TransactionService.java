@@ -1,14 +1,14 @@
 package com.manuelfabri.expenses.service;
 
 import java.util.List;
-import com.manuelfabri.expenses.dto.CreateTransactionDto;
+import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 
 
 public interface TransactionService {
   List<TransactionDto> getAllTransactions();
 
-  TransactionDto createTransaction(CreateTransactionDto transactionDto);
+  TransactionDto createTransaction(TransactionRequestDto transactionDto);
 
   void deleteTransaction(Long id);
 
