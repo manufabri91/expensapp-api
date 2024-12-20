@@ -18,4 +18,6 @@ public class AccountDto {
   private CurrencyEnum currency;
   @NotNull
   private BigDecimal accountBalance;
+  @NotNull
+  private BigDecimal initialBalance;
 }
