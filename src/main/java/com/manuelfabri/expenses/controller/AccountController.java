@@ -37,12 +37,12 @@ public class AccountController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<AccountDto> getById(@PathVariable("id") Long id) {
+  public ResponseEntity<AccountDto> getById(@PathVariable Long id) {
     return new ResponseEntity<>(accountService.getById(id), HttpStatus.OK);
   }
 
   @GetMapping("/{id}/transactions")
-  public ResponseEntity<List<TransactionDto>> getTransactionsByAccountId(@PathVariable("id") Long id) {
+  public ResponseEntity<List<TransactionDto>> getTransactionsByAccountId(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsByAccountId(id), HttpStatus.OK);
   }
 
@@ -52,13 +52,13 @@ public class AccountController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<AccountDto> updateAccount(@PathVariable("id") Long id,
+  public ResponseEntity<AccountDto> updateAccount(@PathVariable Long id,
       @RequestBody AccountRequestDto accountDto) {
     return new ResponseEntity<>(accountService.updateAccount(id, accountDto), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<AccountDto> deleteAccount(@PathVariable("id") Long id) {
+  public ResponseEntity<AccountDto> deleteAccount(@PathVariable Long id) {
     accountService.deleteAccount(id);
     return new ResponseEntity<>(HttpStatus.OK);
   }
