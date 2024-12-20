@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.manuelfabri.expenses.dto.CreateTransactionDto;
+import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Account;
@@ -41,7 +41,7 @@ public class TransactionServiceImplementation implements TransactionService {
 
 
   @Override
-  public TransactionDto createTransaction(CreateTransactionDto transactionDto) {
+  public TransactionDto createTransaction(TransactionRequestDto transactionDto) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
     Account transactionAccount = accountRepository.findActiveById(transactionDto.getAccountId())

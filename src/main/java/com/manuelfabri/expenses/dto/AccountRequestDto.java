@@ -2,14 +2,15 @@ package com.manuelfabri.expenses.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import com.manuelfabri.expenses.model.CurrencyEnum;
 import lombok.Data;
 
 @Data
-public class CreateCategoryDto {
+public class AccountRequestDto {
   @NotBlank(message = "Name cannot be blank or null")
   private String name;
   @NotNull
-  private String iconName;
-  @NotNull
-  private String color;
+  private CurrencyEnum currency;
+  private BigDecimal initialBalance;
 }

@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.manuelfabri.expenses.dto.CreateSubcategoryDto;
+import com.manuelfabri.expenses.dto.SubcategoryRequestDto;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Category;
@@ -41,7 +41,7 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
   }
 
   @Override
-  public SubcategoryDto createSubcategory(CreateSubcategoryDto createRequest) {
+  public SubcategoryDto createSubcategory(SubcategoryRequestDto createRequest) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Category parentCategory = this.categoryRepository.findActiveById(createRequest.getParentCategoryId()).orElseThrow(
         () -> new ResourceNotFoundException("Parent category", "id", createRequest.getParentCategoryId().toString()));
@@ -52,6 +52,23 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
     Subcategory newSubcategory = this.subcategoryRepository.save(subcategory);
 
     return mapper.map(newSubcategory, SubcategoryDto.class);
+  }
+
+  @Override
+  public SubcategoryDto updateSubcategory(Long id, SubcategoryRequestDto subcategoryRequest) {
+    Subcategory subcategory = this.subcategoryRepository.findActiveById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "id", id.toString()));
+    Category parentCategory = this.categoryRepository.findActiveById(subcategoryRequest.getParentCategoryId())
+        .orElseThrow(() -> new ResourceNotFoundException("Parent category", "id",
+            subcategoryRequest.getParentCategoryId().toString()));
+
+    subcategory.setName(subcategoryRequest.getName());
+    subcategory.setParentCategory(parentCategory);
+
+
+    Subcategory editedSubcategory = this.subcategoryRepository.save(subcategory);
+
+    return mapper.map(editedSubcategory, SubcategoryDto.class);
   }
 
   @Override

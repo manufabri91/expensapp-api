@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateTransactionDto {
+public class TransactionRequestDto {
   private Long id;
   private OffsetDateTime eventDate = OffsetDateTime.now();
   @NotBlank(message = "Description cannot be blank or null")

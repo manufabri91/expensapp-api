@@ -6,7 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.CategoryDto;
-import com.manuelfabri.expenses.dto.CreateCategoryDto;
+import com.manuelfabri.expenses.dto.CategoryRequestDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Category;
 import com.manuelfabri.expenses.model.User;
@@ -37,13 +37,26 @@ public class CategoryServiceImplementation implements CategoryService {
   }
 
   @Override
-  public CategoryDto createCategory(CreateCategoryDto createRequest) {
+  public CategoryDto createCategory(CategoryRequestDto createRequest) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Category category = mapper.map(createRequest, Category.class);
     category.setOwner(user);
     Category newCategory = this.categoryRepository.save(category);
 
     return mapper.map(newCategory, CategoryDto.class);
+  }
+
+  @Override
+  public CategoryDto updateCategory(Long id, CategoryRequestDto categoryDto) {
+    Category category = this.categoryRepository.findActiveById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id.toString()));
+    category.setName(categoryDto.getName());
+    category.setColor(categoryDto.getColor());
+    category.setIconName(categoryDto.getIconName());
+
+    Category updatedCategory = this.categoryRepository.save(category);
+
+    return mapper.map(updatedCategory, CategoryDto.class);
   }
 
   @Override

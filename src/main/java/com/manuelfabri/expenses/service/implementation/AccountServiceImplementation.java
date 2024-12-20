@@ -6,7 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.AccountDto;
-import com.manuelfabri.expenses.dto.CreateAccountDto;
+import com.manuelfabri.expenses.dto.AccountRequestDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.User;
@@ -25,7 +25,7 @@ public class AccountServiceImplementation implements AccountService {
   }
 
   @Override
-  public AccountDto createAccount(CreateAccountDto accountDto) {
+  public AccountDto createAccount(AccountRequestDto accountDto) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Account account = mapper.map(accountDto, Account.class);
     account.setOwner(user);
@@ -41,15 +41,29 @@ public class AccountServiceImplementation implements AccountService {
   }
 
   @Override
+  public AccountDto getById(Long id) {
+    return this.accountRepository.findActiveById(id).map((acct) -> mapper.map(acct, AccountDto.class))
+        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
+  }
+
+  @Override
+  public AccountDto updateAccount(Long id, AccountRequestDto accountDto) {
+    Account account = this.accountRepository.findActiveById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
+    account.setName(accountDto.getName());
+    account.setCurrency(accountDto.getCurrency());
+    account.setInitialBalance(accountDto.getInitialBalance());
+
+    Account updatedAccount = this.accountRepository.save(account);
+
+    return mapper.map(updatedAccount, AccountDto.class);
+  }
+
+  @Override
   public void deleteAccount(Long id) {
     Account account = this.accountRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
     this.accountRepository.delete(account);
   }
 
-  @Override
-  public AccountDto getById(Long id) {
-    return this.accountRepository.findActiveById(id).map((acct) -> mapper.map(acct, AccountDto.class))
-        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
-  }
 }
