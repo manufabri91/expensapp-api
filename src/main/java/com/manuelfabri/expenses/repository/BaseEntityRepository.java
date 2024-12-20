@@ -5,7 +5,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,6 +23,12 @@ public interface BaseEntityRepository<T extends BaseEntity> extends JpaRepositor
 
   @Query("select e from #{#entityName} e where e.deleted = true and e.owner.id = ?#{ principal?.id }")
   List<T> findInactive();
+
+  @Query("select e from #{#entityName} e where e.deleted = false and e.owner.id = ?#{ principal?.id }")
+  Page<T> findActivePaged(Pageable pageable);
+
+  @Query("select e from #{#entityName} e where e.deleted = true and e.owner.id = ?#{ principal?.id }")
+  Page<T> findInactivePaged(Pageable pageable);
 
   @Query("select e from #{#entityName} e where e.id = ?1 and e.deleted = false and e.owner.id = ?#{ principal?.id }")
   Optional<T> findActiveById(Long id);
