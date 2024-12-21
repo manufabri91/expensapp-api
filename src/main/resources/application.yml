@@ -19,7 +19,6 @@ spring:
         naming:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
           implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-        show-sql: true
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
