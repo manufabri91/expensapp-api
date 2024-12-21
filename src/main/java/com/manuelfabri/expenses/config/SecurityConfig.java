@@ -37,11 +37,14 @@ public class SecurityConfig {
     String accountRouteMatcher = Urls.ACCOUNT + "/**";
     String categoryRouteMatcher = Urls.CATEGORY + "/**";
     String subcategoryRouteMatcher = Urls.SUBCATEGORY + "/**";
+    String summaryRouteMatcher = Urls.SUMMARY + "/**";
+    String authRouteMatcher = Urls.AUTH + "/**";
 
     return http.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
-        .securityMatcher(transactionRouteMatcher, categoryRouteMatcher, subcategoryRouteMatcher, accountRouteMatcher)
+        .securityMatcher(transactionRouteMatcher, categoryRouteMatcher, subcategoryRouteMatcher, accountRouteMatcher,
+            summaryRouteMatcher)
         .authorizeHttpRequests(
-            (authz) -> authz.requestMatchers(accountRouteMatcher).permitAll().anyRequest().authenticated())
+            (authz) -> authz.requestMatchers(authRouteMatcher).permitAll().anyRequest().authenticated())
         .addFilterBefore(new FirebaseAuthorizationFilter(userService, firebaseService),
             UsernamePasswordAuthenticationFilter.class)
         .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build();
