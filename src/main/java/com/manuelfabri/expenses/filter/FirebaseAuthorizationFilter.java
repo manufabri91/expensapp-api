@@ -4,6 +4,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.exception.InvalidLoginException;
 import com.manuelfabri.expenses.model.FirebaseTokenHolder;
 import com.manuelfabri.expenses.model.User;
@@ -31,13 +32,21 @@ public class FirebaseAuthorizationFilter extends OncePerRequestFilter {
   public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws IOException, ServletException {
 
-    if (request.getHeader(HEADER_NAME) == null) {
+    String xAuth = request.getHeader(HEADER_NAME);
+    String requestURI = request.getRequestURI();
+
+    // Bypass /auth URLs
+    if (requestURI.startsWith(Urls.AUTH)) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    HttpServletRequest httpRequest = request;
-    String xAuth = httpRequest.getHeader(HEADER_NAME);
+    if (xAuth == null || xAuth.isBlank()) {
+      SecurityContextHolder.clearContext();
+      response.setStatus(401);
+      return;
+    }
+
     try {
       FirebaseTokenHolder holder = firebaseService.parseToken(xAuth);
       User user = userService.getUserById(holder.getUid());
