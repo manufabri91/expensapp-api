@@ -9,18 +9,23 @@ import com.manuelfabri.expenses.dto.CategoryDto;
 import com.manuelfabri.expenses.dto.CategoryRequestDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Category;
+import com.manuelfabri.expenses.model.Subcategory;
 import com.manuelfabri.expenses.model.User;
 import com.manuelfabri.expenses.repository.CategoryRepository;
+import com.manuelfabri.expenses.repository.SubcategoryRepository;
 import com.manuelfabri.expenses.service.CategoryService;
 
 @Service
 public class CategoryServiceImplementation implements CategoryService {
   private CategoryRepository categoryRepository;
+  private SubcategoryRepository subCategoryRepository;
   private ModelMapper mapper;
 
-  public CategoryServiceImplementation(CategoryRepository categoryRepository, ModelMapper mapper) {
+  public CategoryServiceImplementation(CategoryRepository categoryRepository, ModelMapper mapper,
+      SubcategoryRepository subCategoryRepository) {
 
     this.categoryRepository = categoryRepository;
+    this.subCategoryRepository = subCategoryRepository;
     this.mapper = mapper;
   }
 
@@ -42,6 +47,11 @@ public class CategoryServiceImplementation implements CategoryService {
     Category category = mapper.map(createRequest, Category.class);
     category.setOwner(user);
     Category newCategory = this.categoryRepository.save(category);
+    var newSubcategory = new Subcategory();
+    newSubcategory.setName("OTHER");
+    newSubcategory.setOwner(user);
+    newSubcategory.setParentCategory(newCategory);
+    this.subCategoryRepository.save(newSubcategory);
 
     return mapper.map(newCategory, CategoryDto.class);
   }
