@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 public class SubcategoryRequestDto {
-  @NotBlank(message = "Name cannot be blank or null")
+  @NotBlank(message = "MISSING_NAME")
   private String name;
-  @NotNull
+  @NotNull(message = "MISSING_PARENT_CATEGORY")
   private Long parentCategoryId;
 }

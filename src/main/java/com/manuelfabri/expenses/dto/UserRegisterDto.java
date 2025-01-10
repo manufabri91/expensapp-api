@@ -8,19 +8,19 @@ import lombok.Data;
 @Data
 public class UserRegisterDto {
 
-  @NotBlank
-  @Email
+  @NotBlank(message = "MISSING_EMAIL")
+  @Email(message = "INVALID_EMAIL")
   private String email;
-  @NotBlank
-  @Size(min = 8, max = 32, message = "Username between 8 to 32 characters") // TODO: Create custom validator to handle
-                                                                            // whitespaces in this field
+  @NotBlank(message = "MISSING_USERNAME")
+  @Size(min = 8, max = 32, message = "INVALID_USERNAME") // TODO: Create custom validator to handle
+                                                         // whitespaces in this field
   private String userName;
-  @NotBlank
-  @Size(min = 8, max = 32, message = "Password should contain between 8 to 32 characters")
+  @NotBlank(message = "MISSING_PASSWORD")
+  @Size(min = 8, max = 32, message = "INVALID_PASSWORD_LENGTH")
   private String password;
-  @NotBlank
+  @NotBlank(message = "MISSING_FIRST_NAME")
   private String firstName;
-  @NotBlank
+  @NotBlank(message = "MISSING_LAST_NAME")
   private String lastName;
 
 }

@@ -1,10 +1,8 @@
 package com.manuelfabri.expenses.service.implementation;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -16,7 +14,6 @@ import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.Category;
-import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.model.Subcategory;
 import com.manuelfabri.expenses.model.Transaction;
 import com.manuelfabri.expenses.model.User;
@@ -138,76 +135,4 @@ public class TransactionServiceImplementation implements TransactionService {
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
 
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getIncomesTotalsByCurrency(int year, int month) {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalIncomes(month, year);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getIncomesTotalsByCurrency(int year) {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalIncomes(year);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getIncomesTotalsByCurrency() {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalIncomes();
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getExpensesTotalsByCurrency(int year, int month) {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalExpenses(month, year);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getExpensesTotalsByCurrency(int year) {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalExpenses(year);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getExpensesTotalsByCurrency() {
-    List<Object[]> results = this.transactionRepository.getTransactionsTotalExpenses();
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getBalancesByCurrency(int year, int month) {
-    List<Object[]> results = this.transactionRepository.getBalancesByCurrency(year, month);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getBalancesByCurrency(int year) {
-    List<Object[]> results = this.transactionRepository.getBalancesByCurrency(year);
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
-
-  @Override
-  public Map<CurrencyEnum, BigDecimal> getBalancesByCurrency() {
-    List<Object[]> results = this.transactionRepository.getBalancesByCurrency();
-    return results.stream().collect(Collectors.toMap(result -> (CurrencyEnum) result[0], // Currency code
-        result -> (BigDecimal) result[1] // Sum of amounts
-    ));
-  }
 }

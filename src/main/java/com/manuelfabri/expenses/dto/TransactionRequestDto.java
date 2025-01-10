@@ -10,13 +10,14 @@ import lombok.Data;
 public class TransactionRequestDto {
   private Long id;
   private OffsetDateTime eventDate = OffsetDateTime.now();
-  @NotBlank(message = "Description cannot be blank or null")
+  @NotBlank(message = "MISSING_DESCRIPTION")
   private String description;
-  @NotNull
+  @NotNull(message = "MISSING_AMOUNT")
   private BigDecimal amount;
-  @NotNull
+  @NotNull(message = "MISSING_ACCOUNT")
   private Long accountId;
-  @NotNull
+  @NotNull(message = "MISSING_CATEGORY")
   private Long categoryId;
+  @NotNull(message = "MISSING_SUBCATEGORY")
   private Long subcategoryId;
 }
