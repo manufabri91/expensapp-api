@@ -1,9 +1,7 @@
 package com.manuelfabri.expenses.controller;
 
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
-import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.TransactionService;
-import com.manuelfabri.expenses.service.TransactionStatisticsService;
 import jakarta.validation.Valid;
 
 @RestController

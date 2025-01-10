@@ -60,6 +60,16 @@ public class SummaryController {
     return new ResponseEntity<>(transactionStatisticsService.getTotalsPerCategory(), HttpStatus.OK);
   }
 
+  @GetMapping("/totals-by-category/{year}")
+  public ResponseEntity<List<CategoryTotalsDto>> getTotalsByCategory(@PathVariable int year) {
+    return new ResponseEntity<>(transactionStatisticsService.getTotalsPerCategory(year), HttpStatus.OK);
+  }
+
+  @GetMapping("/totals-by-category/{year}/{month}")
+  public ResponseEntity<List<CategoryTotalsDto>> getTotalsByCategory(@PathVariable int year, @PathVariable int month) {
+    return new ResponseEntity<>(transactionStatisticsService.getTotalsPerCategory(year, month), HttpStatus.OK);
+  }
+
   @GetMapping("/expenses/{year}/{month}/totals-by-currency")
   public ResponseEntity<Map<CurrencyEnum, BigDecimal>> getExpensesTotalsByYearAndMonth(@PathVariable int year,
       @PathVariable int month) {

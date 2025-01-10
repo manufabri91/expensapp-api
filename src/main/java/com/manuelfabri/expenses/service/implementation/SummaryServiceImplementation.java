@@ -1,6 +1,5 @@
 package com.manuelfabri.expenses.service.implementation;
 
-import com.manuelfabri.expenses.service.CategoryService;
 import com.manuelfabri.expenses.service.SummaryService;
 import com.manuelfabri.expenses.service.TransactionStatisticsService;
 import java.math.BigDecimal;
@@ -14,12 +13,9 @@ import com.manuelfabri.expenses.model.CurrencyEnum;
 @Service
 public class SummaryServiceImplementation implements SummaryService {
   private final TransactionStatisticsService transactionStatisticsService;
-  private final CategoryService categoryService;
 
-  public SummaryServiceImplementation(
-      TransactionStatisticsService transactionStatisticsService, CategoryService categoryService) {
+  public SummaryServiceImplementation(TransactionStatisticsService transactionStatisticsService) {
     this.transactionStatisticsService = transactionStatisticsService;
-    this.categoryService = categoryService;
   }
 
   private List<BalanceSummaryDto> getSummaries(Map<CurrencyEnum, BigDecimal> balances,
