@@ -8,9 +8,9 @@ import lombok.Data;
 
 @Data
 public class AccountRequestDto {
-  @NotBlank(message = "Name cannot be blank or null")
+  @NotBlank(message = "MISSING_NAME")
   private String name;
-  @NotNull
+  @NotNull(message = "MISSING_CURRENCY")
   private CurrencyEnum currency;
   private BigDecimal initialBalance;
 }

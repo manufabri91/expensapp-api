@@ -10,5 +10,5 @@ public interface SummaryService {
 
   List<BalanceSummaryDto> getSummary(int year, int month);
 
-  List<BalanceSummaryDto> getMonthlySummaryWithTotalBalance(int month, int year);
+  List<BalanceSummaryDto> getMonthlySummaryWithTotalBalance(int year, int month);
 }

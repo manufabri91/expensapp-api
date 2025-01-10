@@ -10,11 +10,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserLoginDto {
 
-  @NotBlank
-  @Email
+  @NotBlank(message = "MISSING_EMAIL")
+  @Email(message = "INVALID_EMAIL")
   private String email;
-  @NotBlank(message = "Password cannot be blank")
-  @Size(min = 8, max = 32, message = "Password should contain between 8 to 32 characters")
+  @NotBlank(message = "BLANK_PASSWORD")
+  @Size(min = 8, max = 32, message = "INVALID_PASSWORD_LENGTH")
   private String password;
 
 }

@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class CategoryRequestDto {
-  @NotBlank(message = "Name cannot be blank or null")
+  @NotBlank(message = "MISSING_NAME")
   private String name;
-  @NotNull
+  @NotNull(message = "MISSING_ICON_NAME")
   private String iconName;
-  @NotNull
+  @NotNull(message = "MISSING_COLOR")
   private String color;
 }
