@@ -1,26 +1,26 @@
 version: "3.8"
 
 services:
-  postgresdb:
-    image: postgres:12.19-alpine3.20
-    restart: unless-stopped
-    env_file: ./.env
-    environment:
-      - POSTGRES_PASSWORD=$DB_ROOT_PASSWORD
-      - POSTGRES_DB=$DB_DATABASE
-    ports:
-      - $DB_LOCAL_PORT:$DB_DOCKER_PORT
-    volumes:
-      - db:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $DB_USER -d $DB_DATABASE" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # postgresdb:
+  #   image: postgres:12.19-alpine3.20
+  #   restart: unless-stopped
+  #   env_file: ./.env
+  #   environment:
+  #     - POSTGRES_PASSWORD=$DB_ROOT_PASSWORD
+  #     - POSTGRES_DB=$DB_DATABASE
+  #   ports:
+  #     - $DB_LOCAL_PORT:$DB_DOCKER_PORT
+  #   volumes:
+  #     - db:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "pg_isready -U $DB_USER -d $DB_DATABASE" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  # expensapp_api_local:
   expensapp_api:
-    # expensapp_api_local:
-    depends_on:
-      - postgresdb
+    # depends_on:
+    #   - postgresdb
     build: ./
     restart: on-failure
     env_file: ./.env
