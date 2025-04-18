@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.checkerframework.checker.units.qual.m;
-import org.checkerframework.checker.units.qual.s;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
 import com.manuelfabri.expenses.dto.SubTotalsPerSubcategoryDto;
