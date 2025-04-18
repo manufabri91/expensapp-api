@@ -77,4 +77,11 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
         .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "id", id.toString()));
     this.subcategoryRepository.delete(subcategory);
   }
+
+  @Override
+  public List<SubcategoryDto> getByParentId(Long id) {
+    return this.subcategoryRepository.findActive().stream()
+        .filter(subcategory -> subcategory.getParentCategory().getId() == id)
+        .map(category -> mapper.map(category, SubcategoryDto.class)).collect(Collectors.toList());
+  }
 }

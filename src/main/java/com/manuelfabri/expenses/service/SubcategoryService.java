@@ -4,7 +4,6 @@ import java.util.List;
 import com.manuelfabri.expenses.dto.SubcategoryRequestDto;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 
-
 public interface SubcategoryService {
   List<SubcategoryDto> getAllSubcategories();
 
@@ -16,4 +15,5 @@ public interface SubcategoryService {
 
   SubcategoryDto getById(Long id);
 
+  List<SubcategoryDto> getByParentId(Long id);
 }
