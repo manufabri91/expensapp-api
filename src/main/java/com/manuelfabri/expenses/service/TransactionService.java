@@ -10,11 +10,13 @@ import com.manuelfabri.expenses.dto.TransactionDto;
 public interface TransactionService {
   List<TransactionDto> getAllTransactions();
 
-  Page<TransactionDto> getPagedTransactions(Pageable pageable);
-
   TransactionDto createTransaction(TransactionRequestDto transactionDto);
 
+  TransactionDto updateTransaction(Long id, TransactionRequestDto transactionDto);
+
   void deleteTransaction(Long id);
+
+  Page<TransactionDto> getPagedTransactions(Pageable pageable);
 
   TransactionDto getById(Long id);
 

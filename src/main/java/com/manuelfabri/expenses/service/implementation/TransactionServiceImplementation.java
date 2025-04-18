@@ -84,6 +84,32 @@ public class TransactionServiceImplementation implements TransactionService {
   }
 
   @Override
+  public TransactionDto updateTransaction(Long id, TransactionRequestDto transactionDto) {
+    Account transactionAccount = accountRepository.findActiveById(transactionDto.getAccountId())
+        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", transactionDto.getAccountId().toString()));
+
+    Category transactionCategory = categoryRepository.findActiveById(transactionDto.getCategoryId())
+        .orElseThrow(() -> new ResourceNotFoundException("Category", "id", transactionDto.getCategoryId().toString()));
+
+    Subcategory transactionSubcategory =
+        subcategoryRepository.findActiveById(transactionDto.getSubcategoryId()).orElse(null);
+
+    Transaction transaction = this.transactionRepository.findActiveById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
+
+    transaction.setDescription(transactionDto.getDescription());
+    transaction.setEventDate(transactionDto.getEventDate());
+    transaction.setAmount(transactionDto.getAmount());
+    transaction.setAccount(transactionAccount);
+    transaction.setCategory(transactionCategory);
+    transaction.setSubcategory(transactionSubcategory);
+
+    Transaction updatedTransaction = this.transactionRepository.save(transaction);
+
+    return mapper.map(updatedTransaction, TransactionDto.class);
+  }
+
+  @Override
   public void deleteTransaction(Long id) {
     Transaction transaction = this.transactionRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
@@ -95,7 +121,6 @@ public class TransactionServiceImplementation implements TransactionService {
     return this.transactionRepository.findActiveById(id).map((tx) -> mapper.map(tx, TransactionDto.class))
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
   }
-
 
   @Override
   public List<TransactionDto> getTransactionsByAccountId(Long id) {
@@ -134,5 +159,4 @@ public class TransactionServiceImplementation implements TransactionService {
     return this.transactionRepository.findByOwnerAndEventDateBetweenAndDeletedFalse(user, startDate, endDate).stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
-
 }
