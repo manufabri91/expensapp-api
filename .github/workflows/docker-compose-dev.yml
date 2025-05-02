@@ -1,4 +1,4 @@
-name: Docker Compose Dev Profile
+name: Build and Push Docker Image (Development)
 
 on:
   push:
@@ -48,3 +48,10 @@ jobs:
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:latest
           build-args: |
             PROFILE=dev
+
+      - name: Delay for 5 seconds and then trigger the deployment on Render with post request
+        run: |
+          echo "Waiting for 5 seconds..."
+          sleep 5
+          echo "Triggering deployment on Render..."
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} -H "Accept: application/json"
