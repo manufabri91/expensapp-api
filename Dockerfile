@@ -1,10 +1,13 @@
-#
-# Build stage
-#
-FROM maven:3.8.5-openjdk-17
-COPY src /home/app/src
-COPY pom.xml /home/app
-RUN mvn -f /home/app/pom.xml clean package
+# Stage 1: build
+FROM maven:3.9.9-eclipse-temurin-17-alpine AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: run
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/expensapp_api.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-Dspring.profiles.active=dev","-jar","/home/app/target/expensapp_api.jar"]
-# ENTRYPOINT ["java","-jar","/home/app/target/expensapp_api.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
