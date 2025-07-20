@@ -1,0 +1,20 @@
+# Nixpacks configuration for Java 17 Spring Boot application
+providers = ["java"]
+
+[phases.setup]
+# Ensure Java 17 is installed
+nixPkgs = ["openjdk17"]
+
+[phases.build]
+cmds = [
+  "./mvnw clean package -DskipTests"
+]
+
+[phases.start]
+cmds = [
+  "java -jar target/expensapp-api-1.0.0-BETA.jar"
+]
+
+[variables]
+# Set JAVA_HOME for runtime
+JAVA_HOME = "/nix/var/nix/profiles/default"
