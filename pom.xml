@@ -19,6 +19,7 @@
 		<spring-cloud.version>2022.0.3</spring-cloud.version>
 	</properties>
 	<dependencies>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -158,109 +159,4 @@
 		</plugins>
 		<finalName>expensapp_api</finalName>
 	</build>
-
-	<!-- Production profile: excludes dev/test dependencies and enables layered jar -->
-	<profiles>
-		<profile>
-			<id>production</id>
-			<properties>
-				<skipTests>true</skipTests>
-			</properties>
-			<dependencyManagement>
-				<dependencies>
-					<!-- Only include runtime dependencies for production -->
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-data-jpa</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-security</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-validation</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-web</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.liquibase</groupId>
-						<artifactId>liquibase-core</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.cloud</groupId>
-						<artifactId>spring-cloud-starter-config</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.cloud</groupId>
-						<artifactId>spring-cloud-starter-bootstrap</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.modelmapper</groupId>
-						<artifactId>modelmapper</artifactId>
-						<version>3.1.1</version>
-					</dependency>
-					<dependency>
-						<groupId>com.google.firebase</groupId>
-						<artifactId>firebase-admin</artifactId>
-						<version>9.2.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-					</dependency>
-					<dependency>
-						<groupId>org.postgresql</groupId>
-						<artifactId>postgresql</artifactId>
-						<scope>runtime</scope>
-					</dependency>
-				</dependencies>
-			</dependencyManagement>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-maven-plugin</artifactId>
-						<configuration>
-							<layered>true</layered>
-							<excludes>
-								<exclude>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</exclude>
-								<exclude>
-									<groupId>org.springframework.boot</groupId>
-									<artifactId>spring-boot-devtools</artifactId>
-								</exclude>
-								<exclude>
-									<groupId>com.h2database</groupId>
-									<artifactId>h2</artifactId>
-								</exclude>
-								<exclude>
-									<groupId>org.springframework.boot</groupId>
-									<artifactId>spring-boot-starter-test</artifactId>
-								</exclude>
-								<exclude>
-									<groupId>org.springframework.security</groupId>
-									<artifactId>spring-security-test</artifactId>
-								</exclude>
-							</excludes>
-						</configuration>
-					</plugin>
-				</plugins>
-				<resources>
-					<resource>
-						<directory>src/main/resources</directory>
-						<filtering>true</filtering>
-						<excludes>
-							<exclude>**/application-dev.yml</exclude>
-							<exclude>**/application-test.yml</exclude>
-						</excludes>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-	</profiles>
 </project>
