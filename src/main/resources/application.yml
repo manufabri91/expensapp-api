@@ -20,18 +20,6 @@ spring:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
           implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
 
-  main:
-    lazy-initialization: true
-
-server:
-  tomcat:
-    max-threads: 50
-
-management:
-  endpoint:
-    health:
-      show-details: never
-
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
