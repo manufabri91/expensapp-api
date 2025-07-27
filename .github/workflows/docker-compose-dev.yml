@@ -2,9 +2,9 @@ name: Build and Push Docker Image (Development)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   docker-compose-dev:
@@ -15,8 +15,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
           cache: maven
       - name: Build with Maven
         run: mvn -B package --file pom.xml
@@ -40,12 +40,38 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" >> .env
           echo "DECRYPT_KEY=${{ secrets.DECRYPT_KEY }}" >> .env
 
+      - name: Determine release version
+        id: get_version
+        run: |
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          if [[ $BRANCH_NAME =~ ^(fix|bugfix|hotfix) ]]; then
+            LAST_TAG=$(git tag --sort=-v:refname | grep -E '^([0-9]+\.[0-9]+\.[0-9]+)$' | head -n1)
+            MAJOR=$(echo $LAST_TAG | cut -d. -f1)
+            MINOR=$(echo $LAST_TAG | cut -d. -f2)
+            PATCH=$(echo $LAST_TAG | cut -d. -f3)
+            NEW_PATCH=$((PATCH+1))
+            VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            VERSION_NO_SNAPSHOT=${VERSION/-SNAPSHOT/}
+            echo "version=$VERSION_NO_SNAPSHOT" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create git tag for release version
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          git tag $VERSION
+          git push origin $VERSION
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:${{ steps.get_version.outputs.version }}
           build-args: |
             PROFILE=dev
 
@@ -55,3 +81,24 @@ jobs:
           sleep 5
           echo "Triggering deployment on Render..."
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} -H "Accept: application/json"
+
+      - name: Bump version in pom.xml to next -SNAPSHOT
+        if: github.ref == 'refs/heads/main' && !startsWith(github.head_ref, 'fix') && !startsWith(github.head_ref, 'bugfix') && !startsWith(github.head_ref, 'hotfix')
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          VERSION_NO_SNAPSHOT=${VERSION/-SNAPSHOT/}
+          MAJOR=$(echo $VERSION_NO_SNAPSHOT | cut -d. -f1)
+          MINOR=$(echo $VERSION_NO_SNAPSHOT | cut -d. -f2)
+          NEW_MINOR=$((MINOR+1))
+          NEW_VERSION="$MAJOR.$NEW_MINOR.0-SNAPSHOT"
+          mvn versions:set -DnewVersion=$NEW_VERSION
+          mvn versions:commit
+
+      - name: Commit and push bumped version
+        if: github.ref == 'refs/heads/main' && !startsWith(github.head_ref, 'fix') && !startsWith(github.head_ref, 'bugfix') && !startsWith(github.head_ref, 'hotfix')
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add pom.xml
+          git commit -m "Bump version after release [skip ci]" || echo "No changes to commit"
+          git push
