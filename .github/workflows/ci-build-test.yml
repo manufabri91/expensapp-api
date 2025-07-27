@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  docker-compose-dev:
+  branch-check:
     runs-on: ubuntu-latest
 
     steps:
