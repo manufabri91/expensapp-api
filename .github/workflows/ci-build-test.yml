@@ -1,0 +1,23 @@
+name: Build and Run tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  docker-compose-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Test with Maven
+        run: mvn test --file pom.xml
