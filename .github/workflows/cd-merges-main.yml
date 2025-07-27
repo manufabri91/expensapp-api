@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  docker-compose-dev:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -50,8 +50,14 @@ jobs:
       - name: Determine release version
         id: get_version
         run: |
-          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
-          if [[ $BRANCH_NAME =~ ^(fix|bugfix|hotfix) ]]; then
+          # Detect branch name for both PR merges and direct pushes
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [ -n "$GITHUB_HEAD_REF" ]; then
+            BRANCH_NAME="$GITHUB_HEAD_REF"
+          fi
+          # Normalize branch name to lowercase for matching
+          BRANCH_NAME_LC=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]')
+          if [[ $BRANCH_NAME_LC =~ ^(fix|bugfix|hotfix)[/\-] ]]; then
             LAST_TAG=$(git tag --sort=-v:refname | grep -E '^([0-9]+\.[0-9]+\.[0-9]+)$' | head -n1)
             MAJOR=$(echo $LAST_TAG | cut -d. -f1)
             MINOR=$(echo $LAST_TAG | cut -d. -f2)
@@ -71,7 +77,7 @@ jobs:
           git tag $VERSION
           git push origin $VERSION
 
-      - name: Build and push Docker image
+      - name: Push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -82,13 +88,27 @@ jobs:
           build-args: |
             PROFILE=dev
 
-      - name: Delay for 5 seconds and then trigger the deployment on Render with post request
+      - name: Delay for 5 seconds
         run: |
           echo "Waiting for 5 seconds..."
           sleep 5
-          echo "Triggering deployment on Render..."
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }} -H "Accept: application/json"
 
+  deploy:
+    runs-on: ubuntu-latest`
+    needs: build-and-push-docker-image
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_SVC_ID: ${{ secrets.RAILWAY_SVC_ID }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: railway up --service=${{ env.RAILWAY_SVC_ID }}
+
+  version:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
       - name: Bump version in pom.xml to next -SNAPSHOT
         if: github.ref == 'refs/heads/main' && !startsWith(github.head_ref, 'fix') && !startsWith(github.head_ref, 'bugfix') && !startsWith(github.head_ref, 'hotfix')
         run: |
