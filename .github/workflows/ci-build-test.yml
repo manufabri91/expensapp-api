@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  branch-check:
+  pr-check:
     runs-on: ubuntu-latest
 
     steps:
