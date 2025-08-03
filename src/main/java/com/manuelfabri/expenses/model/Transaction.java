@@ -12,6 +12,12 @@ import jakarta.persistence.ManyToOne;
 
 @Entity(name = "transactions")
 public class Transaction extends BaseEntity {
+  @Column(nullable = false, name = "transactiontype")
+  private TransactionTypeEnum type;
+
+  @ManyToOne
+  @JoinColumn(name = "linkedtransactionid")
+  private Transaction linkedTransaction;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,13 +40,14 @@ public class Transaction extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "subcategory")
   private Subcategory subcategory;
-
+  @Column(nullable = false)
+  private boolean excludeFromTotals = false;
 
   // CONSTRUCTORS
   public Transaction() {}
 
   public Transaction(Long id, OffsetDateTime eventDate, String description, BigDecimal amount,
-      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory) {
+      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory, TransactionTypeEnum type, Long linkedTransactionId) {
     this.id = id;
     this.eventDate = eventDate;
     this.description = description;
@@ -48,6 +55,7 @@ public class Transaction extends BaseEntity {
     this.owner = owner;
     this.category = category;
     this.subcategory = subcategory;
+    this.type = type;
   }
 
   // GETTERS AND SETTERS
@@ -83,9 +91,20 @@ public class Transaction extends BaseEntity {
   public void setAmount(BigDecimal amount) {
     this.amount = amount;
   }
-
   public TransactionTypeEnum getType() {
-    return this.amount.signum() > 0 ? TransactionTypeEnum.INCOME : TransactionTypeEnum.EXPENSE;
+    return type;
+  }
+
+  public void setType(TransactionTypeEnum type) {
+    this.type = type;
+  }
+
+  public Transaction getLinkedTransaction() {
+    return linkedTransaction;
+  }
+
+  public void setLinkedTransaction(Transaction linkedTransaction) {
+    this.linkedTransaction = linkedTransaction;
   }
 
   public CurrencyEnum getCurrencyCode() {
@@ -122,6 +141,14 @@ public class Transaction extends BaseEntity {
 
   public void setSubcategory(Subcategory subcategory) {
     this.subcategory = subcategory;
+  }
+  
+  public boolean getExcludeFromTotals() {
+    return excludeFromTotals;
+  }
+
+  public void setExcludeFromTotals(boolean excludeFromTotals) {
+    this.excludeFromTotals = excludeFromTotals;
   }
 
 
