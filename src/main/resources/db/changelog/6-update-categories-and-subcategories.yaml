@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6.1-add-readonly-and-type-columns
+      author: github-copilot
+      changes:
+        - addColumn:
+            tableName: categories
+            columns:
+              - column:
+                  name: readonly
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: type
+                  type: int
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: subcategories
+            columns:
+              - column:
+                  name: readonly
+                  type: boolean
+                  defaultValueBoolean: false
+
+  - changeSet:
+      id: 6.2-update-existing-categories-type
+      author: github-copilot
+      changes:
+        - update:
+            tableName: categories
+            columns:
+              - column:
+                  name: type
+                  valueNumeric: 1
+
+  - changeSet:
+      id: 6.3-add-transfer-category-and-subcategories
+      author: github-copilot
+      changes:
+        - sql:
+            comment: |
+              For each user, insert a read-only TRANSFER category and two read-only subcategories
+            sql: |
+              WITH new_categories AS (
+                INSERT INTO categories (name, iconname, color, owner, type, readonly, deleted, createdat, updatedat, createdby, updatedby)
+                SELECT 'CATEGORY.TRANSFER', 'transfer', '#003366', u.id, 2, true, false, now(), now(), u.id, u.id FROM users u
+                RETURNING id, owner
+              )
+              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby)
+              SELECT 'SUBCATEGORY.TRANSFER_IN', nc.id, true, false, now(), now(), nc.owner, nc.owner FROM new_categories nc;
+
+              WITH new_categories AS (
+                SELECT id FROM categories WHERE name = 'TRANSFER'
+              )
+              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby)
+              SELECT 'SUBCATEGORY.TRANSFER_OUT', nc.id, true, false, now(), now(), nc.owner, nc.owner FROM new_categories nc;

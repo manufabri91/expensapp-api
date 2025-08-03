@@ -12,6 +12,7 @@ import com.manuelfabri.expenses.model.Role;
 import com.manuelfabri.expenses.model.User;
 import com.manuelfabri.expenses.repository.RoleRepository;
 import com.manuelfabri.expenses.service.AuthService;
+import com.manuelfabri.expenses.service.CategoryService;
 import com.manuelfabri.expenses.service.FirebaseService;
 import com.manuelfabri.expenses.service.UserService;
 
@@ -19,13 +20,15 @@ import com.manuelfabri.expenses.service.UserService;
 public class AuthServiceImplementation implements AuthService {
   private RoleRepository roleRepository;
   private UserService userService;
+  private CategoryService categoryService;
   private FirebaseService firebaseService;
 
   public AuthServiceImplementation(RoleRepository roleRepository, UserService userService,
-      FirebaseService firebaseService) {
+      FirebaseService firebaseService, CategoryService categoryService) {
     this.roleRepository = roleRepository;
     this.userService = userService;
     this.firebaseService = firebaseService;
+    this.categoryService = categoryService;
   }
 
   @Override
@@ -50,7 +53,9 @@ public class AuthServiceImplementation implements AuthService {
     Role role =
         roleRepository.findByName(Roles.BASIC_USER).orElseThrow(() -> new DependencyException("RolesRepository"));
     var fbUser = firebaseService.createUserFromRequest(userRegisterData, role);
-    userService.createUserFromRequest(userRegisterData, fbUser.getUid(), role);
+    User createdUser = userService.createUserFromRequest(userRegisterData, fbUser.getUid(), role);
+
+    categoryService.createTransferCategory(createdUser);
     var loginData = new UserLoginDto(userRegisterData.getEmail(), userRegisterData.getPassword());
     var user = this.login(loginData);
     firebaseService.sendVerificationEmail(user.getToken());

@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -28,19 +26,20 @@ public class Category extends BaseEntity {
   private String color;
   @OneToMany(mappedBy = "parentCategory", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Subcategory> subcategories;
-  @ManyToOne
-  @JoinColumn(name = "owner")
-  private User owner;
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Transaction> transactions;
+  @Column(nullable = false)
+  private TransactionTypeEnum type;
+  private Boolean readOnly = false;
 
   public Category(Long id, String name, String iconName, String color, User owner, List<Transaction> transactions) {
     this.id = id;
     this.name = name;
     this.iconName = iconName;
     this.color = color;
-    this.owner = owner;
+    this.setOwner(owner);
     this.transactions = transactions;
+    this.readOnly = false;
   }
 
   public Category() {}
@@ -59,14 +58,6 @@ public class Category extends BaseEntity {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public User getOwner() {
-    return owner;
-  }
-
-  public void setOwner(User owner) {
-    this.owner = owner;
   }
 
   public String getIconName() {
@@ -101,5 +92,19 @@ public class Category extends BaseEntity {
     this.transactions = transactions;
   }
 
+  public TransactionTypeEnum getType() {
+    return type;
+  }
 
+  public void setType(TransactionTypeEnum type) {
+    this.type = type;
+  }
+
+  public Boolean getReadOnly() {
+    return readOnly;
+  }
+
+  public void setReadOnly(Boolean readOnly) {
+    this.readOnly = readOnly;
+  }
 }

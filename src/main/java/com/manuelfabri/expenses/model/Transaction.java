@@ -32,9 +32,6 @@ public class Transaction extends BaseEntity {
   @JoinColumn(name = "accountid")
   private Account account;
   @ManyToOne
-  @JoinColumn(name = "owner")
-  private User owner;
-  @ManyToOne
   @JoinColumn(name = "category")
   private Category category;
   @ManyToOne
@@ -47,12 +44,13 @@ public class Transaction extends BaseEntity {
   public Transaction() {}
 
   public Transaction(Long id, OffsetDateTime eventDate, String description, BigDecimal amount,
-      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory, TransactionTypeEnum type, Long linkedTransactionId) {
+      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory, TransactionTypeEnum type,
+      Long linkedTransactionId) {
     this.id = id;
     this.eventDate = eventDate;
     this.description = description;
     this.amount = amount;
-    this.owner = owner;
+    this.setOwner(owner);
     this.category = category;
     this.subcategory = subcategory;
     this.type = type;
@@ -91,6 +89,7 @@ public class Transaction extends BaseEntity {
   public void setAmount(BigDecimal amount) {
     this.amount = amount;
   }
+
   public TransactionTypeEnum getType() {
     return type;
   }
@@ -119,14 +118,6 @@ public class Transaction extends BaseEntity {
     this.account = account;
   }
 
-  public User getOwner() {
-    return owner;
-  }
-
-  public void setOwner(User owner) {
-    this.owner = owner;
-  }
-
   public Category getCategory() {
     return category;
   }
@@ -142,7 +133,7 @@ public class Transaction extends BaseEntity {
   public void setSubcategory(Subcategory subcategory) {
     this.subcategory = subcategory;
   }
-  
+
   public boolean getExcludeFromTotals() {
     return excludeFromTotals;
   }
@@ -150,6 +141,4 @@ public class Transaction extends BaseEntity {
   public void setExcludeFromTotals(boolean excludeFromTotals) {
     this.excludeFromTotals = excludeFromTotals;
   }
-
-
 }

@@ -2,12 +2,15 @@ package com.manuelfabri.expenses.service;
 
 import java.util.List;
 import com.manuelfabri.expenses.dto.SubcategoryRequestDto;
+import com.manuelfabri.expenses.model.Subcategory;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 
 public interface SubcategoryService {
   List<SubcategoryDto> getAllSubcategories();
 
   SubcategoryDto createSubcategory(SubcategoryRequestDto createRequest);
+
+  SubcategoryDto createSubcategory(Subcategory subcategory);
 
   SubcategoryDto updateSubcategory(Long id, SubcategoryRequestDto createRequest);
 

@@ -46,11 +46,19 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
     Category parentCategory = this.categoryRepository.findActiveById(createRequest.getParentCategoryId()).orElseThrow(
         () -> new ResourceNotFoundException("Parent category", "id", createRequest.getParentCategoryId().toString()));
     Subcategory subcategory = mapper.map(createRequest, Subcategory.class);
-    subcategory.setId(null); // TODO: Revisar como hacer para que el mapper lo deje nulo
+    subcategory.setId(null); // TODO: Check if this is necessary
     subcategory.setOwner(user);
     subcategory.setParentCategory(parentCategory);
     Subcategory newSubcategory = this.subcategoryRepository.save(subcategory);
 
+    return mapper.map(newSubcategory, SubcategoryDto.class);
+  }
+
+  @Override
+  public SubcategoryDto createSubcategory(Subcategory subcategory) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    subcategory.setOwner(user);
+    Subcategory newSubcategory = this.subcategoryRepository.save(subcategory);
     return mapper.map(newSubcategory, SubcategoryDto.class);
   }
 
@@ -61,6 +69,10 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
     Category parentCategory = this.categoryRepository.findActiveById(subcategoryRequest.getParentCategoryId())
         .orElseThrow(() -> new ResourceNotFoundException("Parent category", "id",
             subcategoryRequest.getParentCategoryId().toString()));
+
+    if (subcategory.getReadOnly()) {
+      throw new IllegalArgumentException("READ_ONLY_SUBCATEGORY");
+    }
 
     subcategory.setName(subcategoryRequest.getName());
     subcategory.setParentCategory(parentCategory);
@@ -75,6 +87,11 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
   public void deleteSubcategory(Long id) {
     Subcategory subcategory = this.subcategoryRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "id", id.toString()));
+
+    if (subcategory.getReadOnly()) {
+      throw new IllegalArgumentException("READ_ONLY_SUBCATEGORY");
+    }
+
     this.subcategoryRepository.delete(subcategory);
   }
 

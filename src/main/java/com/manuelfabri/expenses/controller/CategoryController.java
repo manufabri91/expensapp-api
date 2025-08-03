@@ -42,7 +42,7 @@ public class CategoryController {
 
   @PostMapping
   public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryRequestDto categoryDto) {
-    return new ResponseEntity<>(categoryService.createCategory(categoryDto), HttpStatus.CREATED);
+    return new ResponseEntity<>(categoryService.createCategory(categoryDto, true), HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
@@ -66,6 +66,7 @@ public class CategoryController {
   public ResponseEntity<List<SubcategoryDto>> getSubcategoriesByCategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(subcategoryService.getByParentId(id), HttpStatus.OK);
   }
+
   @GetMapping("/{id}/transactions")
   public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsByCategoryId(id), HttpStatus.OK);

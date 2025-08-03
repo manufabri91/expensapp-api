@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.1</version>
+		<version>3.1.12</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.manuelfabri</groupId>
@@ -29,7 +29,6 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-data</artifactId>
-			<version>6.1.1</version>
 		</dependency>
 
 		<dependency>
@@ -128,7 +127,6 @@
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>${liquibase.version}</version>
 				<configuration>
 					<driver>org.postgresql.Driver</driver>
 					<url>

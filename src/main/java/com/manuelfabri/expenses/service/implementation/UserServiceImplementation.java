@@ -22,7 +22,9 @@ public class UserServiceImplementation implements UserService {
   public User createUserFromRequest(UserRegisterDto userRegisterData, String userId, Role startingRole) {
     User user = new User(userId, userRegisterData.getEmail(), userRegisterData.getUserName(),
         userRegisterData.getFirstName(), userRegisterData.getLastName(), Collections.singletonList(startingRole));
-    return userRepository.save(user);
+    User savedUser = userRepository.save(user);
+
+    return savedUser;
   }
 
 
