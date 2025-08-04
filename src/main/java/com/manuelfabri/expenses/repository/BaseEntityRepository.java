@@ -18,33 +18,34 @@ import com.manuelfabri.expenses.model.BaseEntity;
 @NoRepositoryBean
 public interface BaseEntityRepository<T extends BaseEntity> extends JpaRepository<T, Long> {
 
-  @Query("select e from #{#entityName} e where e.deleted = false and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.deleted = false and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   List<T> findActive();
 
-  @Query("select e from #{#entityName} e where e.deleted = true and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.deleted = true and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   List<T> findInactive();
 
-  @Query("select e from #{#entityName} e where e.deleted = false and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.deleted = false and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   Page<T> findActivePaged(Pageable pageable);
 
-  @Query("select e from #{#entityName} e where e.deleted = true and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.deleted = true and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   Page<T> findInactivePaged(Pageable pageable);
 
-  @Query("select e from #{#entityName} e where e.id = ?1 and e.deleted = false and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.id = ?1 and e.deleted = false and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   Optional<T> findActiveById(Long id);
 
-  @Query("select e from #{#entityName} e where e.id = ?1 and e.deleted = true and e.owner.id = ?#{ principal?.id }")
+  @Query("select e from #{#entityName} e where e.id = ?1 and e.deleted = true and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   Optional<T> findInactiveById(Long id);
 
-  @Query("select count(e) from #{#entityName} e where e.deleted = false and e.owner.id = ?#{ principal?.id }")
+  @Query("select count(e) from #{#entityName} e where e.deleted = false and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   long countActive();
 
-  @Query("select count(e) from #{#entityName} e where e.deleted = true and e.owner.id = ?#{ principal?.id }")
+  @Query("select count(e) from #{#entityName} e where e.deleted = true and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   long countInactive();
 
 
   @Query("update #{#entityName} e " + "set e.deleted=true, " + "e.deletedAt = ?2, " + "e.deletedBy = ?3, "
-      + "e.updatedAt = ?2, " + "e.updatedBy = ?3 " + "where e.id = ?1 and e.owner.id = ?#{ principal?.id }")
+      + "e.updatedAt = ?2, " + "e.updatedBy = ?3 "
+      + "where e.id = ?1 and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   @Transactional
   @Modifying
   void softDelete(Long id, OffsetDateTime deletedAt, String deletedBy);

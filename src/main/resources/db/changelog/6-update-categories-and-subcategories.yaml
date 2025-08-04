@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 6.1-add-readonly-and-type-columns
-      author: github-copilot
+      author: manuelnfabri
       changes:
         - addColumn:
             tableName: categories
@@ -26,7 +26,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 6.2-update-existing-categories-type
-      author: github-copilot
+      author: manuelnfabri
       changes:
         - update:
             tableName: categories
@@ -36,23 +36,31 @@ databaseChangeLog:
                   valueNumeric: 1
 
   - changeSet:
-      id: 6.3-add-transfer-category-and-subcategories
-      author: github-copilot
+      id: 6.3-add-system-user
+      author: manuelnfabri
       changes:
         - sql:
             comment: |
-              For each user, insert a read-only TRANSFER category and two read-only subcategories
+              Insert system user for configuration purposes
             sql: |
-              WITH new_categories AS (
-                INSERT INTO categories (name, iconname, color, owner, type, readonly, deleted, createdat, updatedat, createdby, updatedby)
-                SELECT 'CATEGORY.TRANSFER', 'transfer', '#003366', u.id, 2, true, false, now(), now(), u.id, u.id FROM users u
-                RETURNING id, owner
-              )
-              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby)
-              SELECT 'SUBCATEGORY.TRANSFER_IN', nc.id, true, false, now(), now(), nc.owner, nc.owner FROM new_categories nc;
+              INSERT INTO users (id, email, firstname, lastname, username)
+              VALUES ('system', 'system', 'system', 'system', 'system');
 
-              WITH new_categories AS (
-                SELECT id FROM categories WHERE name = 'TRANSFER'
-              )
-              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby)
-              SELECT 'SUBCATEGORY.TRANSFER_OUT', nc.id, true, false, now(), now(), nc.owner, nc.owner FROM new_categories nc;
+  - changeSet:
+      id: 6.4-add-transfer-category-and-subcategories
+      author: manuelnfabri
+      changes:
+        - sql:
+            comment: |
+              Insert a read-only TRANSFER category and two read-only subcategories for IN and OUT
+            sql: |
+              INSERT INTO categories (name, iconname, color, owner, type, readonly, deleted, createdat, updatedat, createdby, updatedby)
+              VALUES ('CATEGORY.TRANSFER', 'transfer', '#003366', 'system', 2, true, false, now(), now(), 'system', 'system');
+
+              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby, owner)
+              SELECT 'SUBCATEGORY.TRANSFER_IN', c.id, true, false, now(), now(), 'system', 'system', 'system'
+              FROM categories c WHERE c.name = 'CATEGORY.TRANSFER';
+
+              INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby, owner)
+              SELECT 'SUBCATEGORY.TRANSFER_OUT', c.id, true, false, now(), now(), 'system', 'system', 'system'
+              FROM categories c WHERE c.name = 'CATEGORY.TRANSFER';
