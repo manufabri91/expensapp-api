@@ -47,6 +47,9 @@ public class CategoryServiceImplementation implements CategoryService {
   @Transactional
   @Override
   public CategoryDto createCategory(CategoryRequestDto createRequest, Boolean createSubcategory) {
+    if (createRequest.getType() == TransactionTypeEnum.TRANSFER) {
+      throw new IllegalArgumentException("CANNOT_CREATE_TRANSFER_CATEGORY");
+    }
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Category category = mapper.map(createRequest, Category.class);
     category.setOwner(user);

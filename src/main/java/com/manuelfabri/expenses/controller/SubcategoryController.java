@@ -18,6 +18,7 @@ import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.SubcategoryService;
 import com.manuelfabri.expenses.service.TransactionService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(Urls.SUBCATEGORY)
@@ -47,13 +48,13 @@ public class SubcategoryController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<SubcategoryDto> updateSubcategory(@PathVariable Long id,
+  public ResponseEntity<SubcategoryDto> updateSubcategory(@PathVariable @Valid Long id,
       @RequestBody SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.updateSubcategory(id, subcategoryDto), HttpStatus.OK);
   }
 
   @PostMapping
-  public ResponseEntity<SubcategoryDto> createSubcategory(@RequestBody SubcategoryRequestDto subcategoryDto) {
+  public ResponseEntity<SubcategoryDto> createSubcategory(@RequestBody @Valid SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.createSubcategory(subcategoryDto), HttpStatus.CREATED);
   }
 

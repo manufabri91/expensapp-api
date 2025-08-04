@@ -19,9 +19,7 @@ public class TransactionRequestDto {
   private BigDecimal amount;
   @NotNull(message = "MISSING_ACCOUNT")
   private Long accountId;
-  @NotNull(message = "MISSING_CATEGORY")
   private Long categoryId;
-  @NotNull(message = "MISSING_SUBCATEGORY")
   private Long subcategoryId;
   private boolean excludeFromTotals = false;
   @NotNull(message = "MISSING_TYPE")

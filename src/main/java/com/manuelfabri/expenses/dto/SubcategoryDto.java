@@ -14,4 +14,6 @@ public class SubcategoryDto {
   private long parentCategoryId;
   @NotNull
   private String parentCategoryName;
+  @NotNull
+  private Boolean readOnly;
 }

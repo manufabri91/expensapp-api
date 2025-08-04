@@ -55,22 +55,59 @@ public class TransactionServiceImplementation implements TransactionService {
     }
   }
 
+  private static class TransferCategories {
+    public final Category category;
+    public final Subcategory subcategoryIn;
+    public final Subcategory subcategoryOut;
+
+    public TransferCategories(Category category, Subcategory subcategoryIn, Subcategory subcategoryOut) {
+      this.category = category;
+      this.subcategoryIn = subcategoryIn;
+      this.subcategoryOut = subcategoryOut;
+    }
+  }
+
   private EntityTriple getTransactionRelatedEntities(TransactionRequestDto transactionDto) {
     Long accountId = transactionDto.getAccountId();
     Long categoryId = transactionDto.getCategoryId();
     Long subcategoryId = transactionDto.getSubcategoryId();
 
-    Account account = accountRepository.findActiveById(accountId)
-        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
-    Category category = categoryRepository.findActiveById(categoryId)
-        .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId.toString()));
-    Subcategory subcategory = subcategoryRepository.findActiveById(subcategoryId).orElse(null);
-
-    if (subcategory != null && !subcategory.getParentCategory().equals(category)) {
-      throw new IllegalArgumentException("SUBCATEGORY_NOT_BELONG_TO_CATEGORY");
+    Category category = null;
+    Subcategory subcategory = null;
+    if (transactionDto.getType() != TransactionTypeEnum.TRANSFER) {
+      if (categoryId == null) {
+        throw new IllegalArgumentException("MISSING_ACCOUNT");
+      }
+      if (subcategoryId == null) {
+        throw new IllegalArgumentException("MISSING_SUBCATEGORY");
+      }
+      category = categoryRepository.findActiveById(categoryId)
+          .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId.toString()));
+      subcategory = subcategoryRepository.findActiveById(subcategoryId).orElse(null);
+      if (subcategory != null && !subcategory.getParentCategory().equals(category)) {
+        throw new IllegalArgumentException("SUBCATEGORY_NOT_BELONG_TO_CATEGORY");
+      }
+    } else {
+      TransferCategories transferCategories = getTransferCategory();
+      category = transferCategories.category;
+      subcategory = transferCategories.subcategoryOut;
     }
 
+    Account account = accountRepository.findActiveById(accountId)
+        .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+
     return new EntityTriple(account, category, subcategory);
+  }
+
+  private TransferCategories getTransferCategory() {
+    Category transferCategory = categoryRepository.findActiveByNameAndIsSystem("CATEGORY.TRANSFER")
+        .orElseThrow(() -> new ResourceNotFoundException("Category", "name", "CATEGORY.TRANSFER"));
+    Subcategory transferInSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("SUBCATEGORY.TRANSFER_IN")
+        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "SUBCATEGORY.TRANSFER_IN"));
+    Subcategory transferOutSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("SUBCATEGORY.TRANSFER_OUT")
+        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "SUBCATEGORY.TRANSFER_OUT"));
+
+    return new TransferCategories(transferCategory, transferInSubcategory, transferOutSubcategory);
   }
 
   private Account getTransferAccount(Long destinationAccountId, Account originAccount) {
@@ -99,11 +136,13 @@ public class TransactionServiceImplementation implements TransactionService {
         getTransferAccount(transferSourceDto.getDestinationAccountId(), relatedEntityTriple.account);
 
     Transaction linked = mapper.map(transferSourceDto, Transaction.class);
+
+    TransferCategories transferCategories = getTransferCategory();
     linked.setAmount(transferSourceDto.getAmount().abs());
     linked.setAccount(destinationAccount);
     linked.setOwner(user);
     linked.setCategory(relatedEntityTriple.category);
-    linked.setSubcategory(relatedEntityTriple.subcategory);
+    linked.setSubcategory(transferCategories.subcategoryIn);
     linked.setLinkedTransaction(linkTransaction);
     linked.setExcludeFromTotals(true);
     return this.transactionRepository.save(linked);
