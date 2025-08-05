@@ -138,6 +138,7 @@ public class TransactionServiceImplementation implements TransactionService {
     Transaction linked = mapper.map(transferSourceDto, Transaction.class);
 
     TransferCategories transferCategories = getTransferCategory();
+    linked.setDescription("TRANSFER.IN.DESCRIPTION");
     linked.setAmount(transferSourceDto.getAmount().abs());
     linked.setAccount(destinationAccount);
     linked.setOwner(user);
@@ -163,6 +164,9 @@ public class TransactionServiceImplementation implements TransactionService {
     var amount = transaction.getAmount().abs();
     if (transaction.getType() == TransactionTypeEnum.EXPENSE || transaction.getType() == TransactionTypeEnum.TRANSFER) {
       amount = amount.negate();
+    }
+    if (transaction.getType() == TransactionTypeEnum.TRANSFER) {
+      transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
     }
     transaction.setAmount(amount);
     transaction.setOwner(user);
@@ -206,8 +210,16 @@ public class TransactionServiceImplementation implements TransactionService {
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
 
     transaction.setDescription(transactionDto.getDescription());
+    if (transactionDto.getType() == TransactionTypeEnum.TRANSFER) {
+      transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
+    }
+    var amount = transactionDto.getAmount().abs();
+    if (transaction.getType() == TransactionTypeEnum.EXPENSE || transaction.getType() == TransactionTypeEnum.TRANSFER) {
+      amount = amount.negate();
+    }
+
     transaction.setEventDate(transactionDto.getEventDate());
-    transaction.setAmount(transactionDto.getAmount());
+    transaction.setAmount(amount);
     transaction.setAccount(transactionAccount);
     transaction.setCategory(transactionCategory);
     transaction.setSubcategory(transactionSubcategory);
