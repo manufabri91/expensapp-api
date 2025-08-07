@@ -48,7 +48,7 @@ public class CategoryServiceImplementation implements CategoryService {
   @Override
   public CategoryDto createCategory(CategoryRequestDto createRequest, Boolean createSubcategory) {
     if (createRequest.getType() == TransactionTypeEnum.TRANSFER) {
-      throw new IllegalArgumentException("CANNOT_CREATE_TRANSFER_CATEGORY");
+      throw new IllegalArgumentException("FORBIDDEN_CATEGORY_TYPE");
     }
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Category category = mapper.map(createRequest, Category.class);
@@ -82,9 +82,13 @@ public class CategoryServiceImplementation implements CategoryService {
     if (category.getReadOnly()) {
       throw new IllegalArgumentException("READ_ONLY_CATEGORY");
     }
+    if (categoryDto.getType() == TransactionTypeEnum.TRANSFER) {
+      throw new IllegalArgumentException("FORBIDDEN_CATEGORY_TYPE");
+    }
     category.setName(categoryDto.getName());
     category.setColor(categoryDto.getColor());
     category.setIconName(categoryDto.getIconName());
+    category.setType(categoryDto.getType());
 
     Category updatedCategory = this.categoryRepository.save(category);
 

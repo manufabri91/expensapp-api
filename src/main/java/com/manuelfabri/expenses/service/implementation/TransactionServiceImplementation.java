@@ -100,12 +100,12 @@ public class TransactionServiceImplementation implements TransactionService {
   }
 
   private TransferCategories getTransferCategory() {
-    Category transferCategory = categoryRepository.findActiveByNameAndIsSystem("CATEGORY.TRANSFER")
-        .orElseThrow(() -> new ResourceNotFoundException("Category", "name", "CATEGORY.TRANSFER"));
-    Subcategory transferInSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("SUBCATEGORY.TRANSFER_IN")
-        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "SUBCATEGORY.TRANSFER_IN"));
-    Subcategory transferOutSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("SUBCATEGORY.TRANSFER_OUT")
-        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "SUBCATEGORY.TRANSFER_OUT"));
+    Category transferCategory = categoryRepository.findActiveByNameAndIsSystem("TRANSFER.CATEGORY")
+        .orElseThrow(() -> new ResourceNotFoundException("Category", "name", "TRANSFER.CATEGORY"));
+    Subcategory transferInSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("TRANSFER.IN.SUBCATEGORY")
+        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "TRANSFER.IN.SUBCATEGORY"));
+    Subcategory transferOutSubcategory = subcategoryRepository.findActiveByNameAndIsSystem("TRANSFER.OUT.SUBCATEGORY")
+        .orElseThrow(() -> new ResourceNotFoundException("Subcategory", "name", "TRANSFER.OUT.SUBCATEGORY"));
 
     return new TransferCategories(transferCategory, transferInSubcategory, transferOutSubcategory);
   }
@@ -202,44 +202,58 @@ public class TransactionServiceImplementation implements TransactionService {
   @Override
   public TransactionDto updateTransaction(Long id, TransactionRequestDto transactionDto) {
     EntityTriple entities = getTransactionRelatedEntities(transactionDto);
-    Account transactionAccount = entities.account;
-    Category transactionCategory = entities.category;
-    Subcategory transactionSubcategory = entities.subcategory;
-
+    Account transactionNewAccount = entities.account;
+    Category transactionNewCategory = entities.category;
+    Subcategory transactionNewSubcategory = entities.subcategory;
+    Long idToDelete = null;
     Transaction transaction = this.transactionRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
-
-    transaction.setDescription(transactionDto.getDescription());
-    if (transactionDto.getType() == TransactionTypeEnum.TRANSFER) {
-      transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
-    }
-    var amount = transactionDto.getAmount().abs();
-    if (transaction.getType() == TransactionTypeEnum.EXPENSE || transaction.getType() == TransactionTypeEnum.TRANSFER) {
-      amount = amount.negate();
-    }
-
-    transaction.setEventDate(transactionDto.getEventDate());
-    transaction.setAmount(amount);
-    transaction.setAccount(transactionAccount);
-    transaction.setCategory(transactionCategory);
-    transaction.setSubcategory(transactionSubcategory);
-    transaction.setExcludeFromTotals(transactionDto.isExcludeFromTotals());
-
     TransactionTypeEnum currentType = transaction.getType();
     TransactionTypeEnum newType = transactionDto.getType();
-    if (currentType != newType) {
+
+
+    if (newType != TransactionTypeEnum.TRANSFER) {
+      var amount = transactionDto.getAmount().abs();
+      if (newType == TransactionTypeEnum.EXPENSE) {
+        amount = amount.negate();
+      }
+
+      transaction.setEventDate(transactionDto.getEventDate());
+      transaction.setAmount(amount);
+      transaction.setAccount(transactionNewAccount);
+      transaction.setCategory(transactionNewCategory);
+      transaction.setSubcategory(transactionNewSubcategory);
+      transaction.setExcludeFromTotals(transactionDto.isExcludeFromTotals());
+      transaction.setDescription(transactionDto.getDescription());
+
       if (currentType == TransactionTypeEnum.TRANSFER) {
         this.transactionRepository.delete(transaction.getLinkedTransaction());
         transaction.setLinkedTransaction(null);
-      } else if (newType == TransactionTypeEnum.TRANSFER) {
-        Transaction linkedTransaction = createTransferCounterpart(transactionDto, entities, transaction);
-        transaction.setLinkedTransaction(linkedTransaction);
-        transaction.setExcludeFromTotals(true);
       }
-      transaction.setType(transactionDto.getType());
+      transaction.setType(newType);
+    } else {
+      TransferCategories transferCategories = getTransferCategory();
+      if (currentType == TransactionTypeEnum.TRANSFER) {
+        idToDelete = transaction.getLinkedTransaction().getId();
+      }
+      transaction.setEventDate(transactionDto.getEventDate());
+      transaction.setExcludeFromTotals(true);
+      transaction.setType(TransactionTypeEnum.TRANSFER);
+      transaction.setAmount(transactionDto.getAmount().abs().negate());
+      transaction.setAccount(transactionNewAccount);
+      transaction.setCategory(transferCategories.category);
+      transaction.setSubcategory(transferCategories.subcategoryOut);
+      transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
+      transaction.setLinkedTransaction(createTransferCounterpart(transactionDto, entities, transaction));
+
     }
 
+
     Transaction updatedTransaction = this.transactionRepository.save(transaction);
+
+    if (idToDelete != null) {
+      this.transactionRepository.deleteById(idToDelete);
+    }
 
     return mapper.map(updatedTransaction, TransactionDto.class);
   }

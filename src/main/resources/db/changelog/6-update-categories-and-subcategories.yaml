@@ -55,7 +55,7 @@ databaseChangeLog:
               Insert a read-only TRANSFER category and two read-only subcategories for IN and OUT
             sql: |
               INSERT INTO categories (name, iconname, color, owner, type, readonly, deleted, createdat, updatedat, createdby, updatedby)
-              VALUES ('TRANSFER.CATEGORY', 'transfer', '#003366', 'system', 2, true, false, now(), now(), 'system', 'system');
+              VALUES ('TRANSFER.CATEGORY', 'transfer', '#3f83f8', 'system', 2, true, false, now(), now(), 'system', 'system');
 
               -- Get the id of the TRANSFER category and insert subcategories referencing it
               INSERT INTO subcategories (name, parentcategory, readonly, deleted, createdat, updatedat, createdby, updatedby, owner)
