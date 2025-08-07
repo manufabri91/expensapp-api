@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5-1-add-transactiontype-nullable
+      author: manufabri91
+      changes:
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: transactiontype
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 5-2-update-existing-transactions
+      author: manufabri91
+      changes:
+        - update:
+            tableName: transactions
+            columns:
+              - column:
+                  name: transactiontype
+                  value: 0
+            where: amount > 0
+        - update:
+            tableName: transactions
+            columns:
+              - column:
+                  name: transactiontype
+                  value: 1
+            where: amount < 0
+
+  - changeSet:
+      id: 5-3-set-transactiontype-not-nullable
+      author: manufabri91
+      changes:
+        - addNotNullConstraint:
+            tableName: transactions
+            columnName: transactiontype
+            columnDataType: VARCHAR(20)
+
+  - changeSet:
+      id: 5-4-add-linkedtransactionid-and-fk
+      author: manufabri91
+      changes:
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: linkedtransactionid
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseColumnNames: linkedtransactionid
+            baseTableName: transactions
+            constraintName: FK_linked_transaction
+            referencedColumnNames: id
+            referencedTableName: transactions
+            onDelete: SET NULL
+            onUpdate: CASCADE

@@ -1,6 +1,7 @@
 package com.manuelfabri.expenses.exception;
 
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,6 +34,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
   public ResponseEntity<Object> handleInvalidLoginException(InvalidLoginException ex, WebRequest request) {
     return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  public ResponseEntity<Object> handleDataIntegrityViolationExceptionn(DataIntegrityViolationException ex,
+      WebRequest request) {
+    return buildErrorResponse(ex, "DATA_INTEGRITY", HttpStatus.BAD_REQUEST, request, null);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)

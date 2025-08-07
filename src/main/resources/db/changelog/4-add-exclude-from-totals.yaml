@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4-add-exclude-from-totals
+      author: manufabri91
+      changes:
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: excludefromtotals
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

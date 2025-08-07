@@ -1,5 +1,8 @@
 package com.manuelfabri.expenses.model;
 
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -11,6 +14,9 @@ import jakarta.persistence.PreUpdate;
 
 @MappedSuperclass
 public abstract class BaseEntity {
+  @ManyToOne
+  @JoinColumn(name = "owner")
+  private User owner;
 
   @Column(updatable = false)
   private OffsetDateTime createdAt;
@@ -57,6 +63,14 @@ public abstract class BaseEntity {
     return deletedAt;
   }
 
+  public User getOwner() {
+    return owner;
+  }
+
+  public void setOwner(User owner) {
+    this.owner = owner;
+  }
+
   @PrePersist
   public void onPrePersist() {
     if (this.createdAt == null) {
@@ -74,8 +88,12 @@ public abstract class BaseEntity {
   }
 
   public static String getAuditor() {
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    return user.getId();
+    try {
+      User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      return user.getId();
+    } catch (Exception e) {
+      return "system";
+    }
   }
 
 }

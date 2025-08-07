@@ -7,3 +7,9 @@ databaseChangeLog:
       file: db/changelog/2-add-test-user.yaml
   - include:
       file: db/changelog/3-add-role-to-test-user.yaml
+  - include:
+      file: db/changelog/4-add-exclude-from-totals.yaml
+  - include:
+      file: db/changelog/5-add-transfer-support.yaml
+  - include:
+      file: db/changelog/6-update-categories-and-subcategories.yaml

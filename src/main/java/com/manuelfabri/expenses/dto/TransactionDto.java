@@ -2,12 +2,13 @@ package com.manuelfabri.expenses.dto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import com.manuelfabri.expenses.model.CurrencyEnum;
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
+
 import jakarta.validation.constraints.Negative;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import com.manuelfabri.expenses.model.CurrencyEnum;
-import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import lombok.Data;
 
 @Data
@@ -33,4 +34,6 @@ public class TransactionDto {
   private CategoryDto category;
   @NotNull
   private SubcategoryDto subcategory;
+  private LinkedTransactionDTO linkedTransaction;
+  private boolean excludeFromTotals = false;
 }

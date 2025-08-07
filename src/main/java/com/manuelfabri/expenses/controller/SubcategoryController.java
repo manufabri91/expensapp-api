@@ -18,6 +18,7 @@ import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.SubcategoryService;
 import com.manuelfabri.expenses.service.TransactionService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(Urls.SUBCATEGORY)
@@ -32,7 +33,7 @@ public class SubcategoryController {
   }
 
   @GetMapping
-  public ResponseEntity<List<SubcategoryDto>> getAllCategories() {
+  public ResponseEntity<List<SubcategoryDto>> getAllSubcategories() {
     return new ResponseEntity<>(subcategoryService.getAllSubcategories(), HttpStatus.OK);
   }
 
@@ -42,23 +43,23 @@ public class SubcategoryController {
   }
 
   @GetMapping("/{id}/transactions")
-  public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable Long id) {
+  public ResponseEntity<List<TransactionDto>> getTransactionsBySubcategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsBySubcategoryId(id), HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<SubcategoryDto> updateCategory(@PathVariable Long id,
+  public ResponseEntity<SubcategoryDto> updateSubcategory(@PathVariable @Valid Long id,
       @RequestBody SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.updateSubcategory(id, subcategoryDto), HttpStatus.OK);
   }
 
   @PostMapping
-  public ResponseEntity<SubcategoryDto> createCategory(@RequestBody SubcategoryRequestDto subcategoryDto) {
+  public ResponseEntity<SubcategoryDto> createSubcategory(@RequestBody @Valid SubcategoryRequestDto subcategoryDto) {
     return new ResponseEntity<>(subcategoryService.createSubcategory(subcategoryDto), HttpStatus.CREATED);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<CategoryDto> deleteCategory(@PathVariable Long id) {
+  public ResponseEntity<CategoryDto> deleteSubcategory(@PathVariable Long id) {
     subcategoryService.deleteSubcategory(id);
     return new ResponseEntity<>(HttpStatus.OK);
   }

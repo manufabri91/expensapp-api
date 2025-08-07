@@ -2,6 +2,9 @@ package com.manuelfabri.expenses.dto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -16,8 +19,11 @@ public class TransactionRequestDto {
   private BigDecimal amount;
   @NotNull(message = "MISSING_ACCOUNT")
   private Long accountId;
-  @NotNull(message = "MISSING_CATEGORY")
   private Long categoryId;
-  @NotNull(message = "MISSING_SUBCATEGORY")
   private Long subcategoryId;
+  private boolean excludeFromTotals = false;
+  @NotNull(message = "MISSING_TYPE")
+  private TransactionTypeEnum type;
+  private Long linkedTransactionId;
+  private Long destinationAccountId;
 }

@@ -1,5 +1,6 @@
 package com.manuelfabri.expenses.dto;
 
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -8,8 +9,8 @@ import lombok.Data;
 public class CategoryRequestDto {
   @NotBlank(message = "MISSING_NAME")
   private String name;
-  @NotNull(message = "MISSING_ICON_NAME")
   private String iconName;
-  @NotNull(message = "MISSING_COLOR")
   private String color;
+  @NotNull(message = "MISSING_TYPE")
+  private TransactionTypeEnum type;
 }

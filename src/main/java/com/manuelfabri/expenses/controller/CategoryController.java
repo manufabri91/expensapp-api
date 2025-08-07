@@ -19,6 +19,7 @@ import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.CategoryService;
 import com.manuelfabri.expenses.service.SubcategoryService;
 import com.manuelfabri.expenses.service.TransactionService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(Urls.CATEGORY)
@@ -41,13 +42,13 @@ public class CategoryController {
   }
 
   @PostMapping
-  public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryRequestDto categoryDto) {
-    return new ResponseEntity<>(categoryService.createCategory(categoryDto), HttpStatus.CREATED);
+  public ResponseEntity<CategoryDto> createCategory(@RequestBody @Valid CategoryRequestDto categoryDto) {
+    return new ResponseEntity<>(categoryService.createCategory(categoryDto, true), HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long id,
-      @RequestBody CategoryRequestDto categoryDto) {
+      @RequestBody @Valid CategoryRequestDto categoryDto) {
     return new ResponseEntity<>(categoryService.updateCategory(id, categoryDto), HttpStatus.OK);
   }
 
@@ -66,6 +67,7 @@ public class CategoryController {
   public ResponseEntity<List<SubcategoryDto>> getSubcategoriesByCategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(subcategoryService.getByParentId(id), HttpStatus.OK);
   }
+
   @GetMapping("/{id}/transactions")
   public ResponseEntity<List<TransactionDto>> getTransactionsByCategoryId(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getTransactionsByCategoryId(id), HttpStatus.OK);

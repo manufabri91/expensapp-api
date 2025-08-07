@@ -27,16 +27,14 @@ public class Subcategory extends BaseEntity {
   private Category parentCategory;
   @OneToMany(mappedBy = "subcategory", cascade = CascadeType.ALL)
   private List<Transaction> transactions;
-  @ManyToOne
-  @JoinColumn(name = "owner")
-  private User owner;
+  private Boolean readOnly = false;
 
   public Subcategory(Long id, String name, Category parentCategory, List<Transaction> transactions, User owner) {
     this.id = id;
     this.name = name;
     this.parentCategory = parentCategory;
     this.transactions = transactions;
-    this.owner = owner;
+    this.setOwner(owner);
   }
 
   public Subcategory() {}
@@ -73,14 +71,11 @@ public class Subcategory extends BaseEntity {
     this.transactions = transactions;
   }
 
-  public User getOwner() {
-    return owner;
+  public Boolean getReadOnly() {
+    return readOnly;
   }
 
-  public void setOwner(User owner) {
-    this.owner = owner;
+  public void setReadOnly(Boolean readOnly) {
+    this.readOnly = readOnly;
   }
-
-
-
 }

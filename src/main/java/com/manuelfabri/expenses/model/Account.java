@@ -28,9 +28,6 @@ public class Account extends BaseEntity {
   private CurrencyEnum currency;
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Transaction> transactions;
-  @ManyToOne
-  @JoinColumn(name = "owner")
-  private User owner;
   @Column(nullable = false, precision = 10, scale = 2)
   private BigDecimal initialBalance = BigDecimal.ZERO;
 
@@ -41,7 +38,7 @@ public class Account extends BaseEntity {
     this.id = id;
     this.name = name;
     this.currency = currency;
-    this.owner = owner;
+    this.setOwner(owner);
   }
 
   public Account() {}
@@ -68,14 +65,6 @@ public class Account extends BaseEntity {
 
   public void setCurrency(CurrencyEnum currency) {
     this.currency = currency;
-  }
-
-  public User getOwner() {
-    return owner;
-  }
-
-  public void setOwner(User owner) {
-    this.owner = owner;
   }
 
   public List<Transaction> getTransactions() {

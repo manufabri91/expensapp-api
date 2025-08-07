@@ -18,6 +18,7 @@ import com.manuelfabri.expenses.dto.AccountRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.AccountService;
 import com.manuelfabri.expenses.service.TransactionService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(Urls.ACCOUNT)
@@ -47,13 +48,13 @@ public class AccountController {
   }
 
   @PostMapping
-  public ResponseEntity<AccountDto> createAccount(@RequestBody AccountRequestDto accountDto) {
+  public ResponseEntity<AccountDto> createAccount(@RequestBody @Valid AccountRequestDto accountDto) {
     return new ResponseEntity<>(accountService.createAccount(accountDto), HttpStatus.CREATED);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<AccountDto> updateAccount(@PathVariable Long id,
-      @RequestBody AccountRequestDto accountDto) {
+      @RequestBody @Valid AccountRequestDto accountDto) {
     return new ResponseEntity<>(accountService.updateAccount(id, accountDto), HttpStatus.OK);
   }
 
