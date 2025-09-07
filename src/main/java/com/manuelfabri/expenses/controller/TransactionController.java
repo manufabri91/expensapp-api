@@ -3,9 +3,11 @@ package com.manuelfabri.expenses.controller;
 import java.security.Principal;
 import java.util.List;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,9 +21,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.service.TransactionService;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 
 @RestController
 @RequestMapping(Urls.TRANSACTION)
@@ -34,13 +39,17 @@ public class TransactionController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<TransactionDto>> getAllTransactions(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "50") int size, @RequestParam(defaultValue = "eventDate") String sortBy,
-      @RequestParam(defaultValue = "false") boolean ascending) {
-    Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-    Pageable pageable = PageRequest.of(page, size, sort);
-
-    return new ResponseEntity<>(transactionService.getPagedTransactions(pageable), HttpStatus.OK);
+  public ResponseEntity<Page<TransactionDto>> getAllTransactions(
+      @RequestParam(required = false) TransactionTypeEnum type, @RequestParam(required = false) Long categoryId,
+      @RequestParam(required = false) BigDecimal minAmount, @RequestParam(required = false) BigDecimal maxAmount,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime toDate,
+      @PageableDefault(size = 20,
+          page = 0) @SortDefault.SortDefaults({@SortDefault(sort = "eventDate", direction = Direction.DESC),
+              @SortDefault(sort = "id", direction = Direction.DESC)}) Pageable pageable) {
+    return new ResponseEntity<>(
+        transactionService.getPagedTransactions(type, categoryId, minAmount, maxAmount, fromDate, toDate, pageable),
+        HttpStatus.OK);
   }
 
   @GetMapping("/{year}/{month}")

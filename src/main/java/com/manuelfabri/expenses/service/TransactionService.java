@@ -1,9 +1,12 @@
 package com.manuelfabri.expenses.service;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import com.manuelfabri.expenses.dto.TransactionDto;
 
 
@@ -16,7 +19,8 @@ public interface TransactionService {
 
   void deleteTransaction(Long id);
 
-  Page<TransactionDto> getPagedTransactions(Pageable pageable);
+  Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, Long categoryId, BigDecimal minAmount,
+      BigDecimal maxAmount, OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable);
 
   TransactionDto getById(Long id);
 

@@ -1,5 +1,6 @@
 package com.manuelfabri.expenses.service.implementation;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -24,6 +25,9 @@ import com.manuelfabri.expenses.repository.CategoryRepository;
 import com.manuelfabri.expenses.repository.SubcategoryRepository;
 import com.manuelfabri.expenses.repository.TransactionRepository;
 import com.manuelfabri.expenses.service.TransactionService;
+import com.manuelfabri.specification.BaseEntitySpecifications;
+import com.manuelfabri.specification.TransactionSpecifications;
+import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class TransactionServiceImplementation implements TransactionService {
@@ -188,13 +192,19 @@ public class TransactionServiceImplementation implements TransactionService {
 
   @Override
   public List<TransactionDto> getAllTransactions() {
-    return this.transactionRepository.findActive().stream()
+    return this.transactionRepository.findAll().stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
 
   @Override
-  public Page<TransactionDto> getPagedTransactions(Pageable pageable) {
-    return this.transactionRepository.findActivePaged(pageable)
+  public Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, Long categoryId, BigDecimal minAmount,
+      BigDecimal maxAmount, OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable) {
+    Specification<Transaction> activeForCurrent = Specification.where(BaseEntitySpecifications.activeForCurrentUser());
+
+    return transactionRepository.findAll(activeForCurrent.and(TransactionSpecifications.hasType(type))
+        .and(TransactionSpecifications.hasCategoryId(categoryId)).and(TransactionSpecifications.hasMinAmount(minAmount))
+        .and(TransactionSpecifications.hasMaxAmount(maxAmount)).and(TransactionSpecifications.occurredAfter(fromDate))
+        .and(TransactionSpecifications.occurredBefore(toDate)), pageable)
         .map(transaction -> mapper.map(transaction, TransactionDto.class));
   }
 
