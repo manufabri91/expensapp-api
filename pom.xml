@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.manuelfabri</groupId>
 	<artifactId>expenses</artifactId>
-	<version>1.4.0-SNAPSHOT</version>
+	<version>1.5.0-SNAPSHOT</version>
 	<name>Expenses App API</name>
 	<description>Expenses REST Api</description>
 	<properties>
