@@ -100,7 +100,7 @@ jobs:
 
   version:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Bump version in pom.xml to next -SNAPSHOT
