@@ -96,7 +96,7 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - run: railway up --service=${{ env.RAILWAY_SVC_ID }}
+      - run: railway up --service=${{ secrets.RAILWAY_SVC_ID }}
 
   version:
     runs-on: ubuntu-latest
