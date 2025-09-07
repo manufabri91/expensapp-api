@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -16,7 +17,8 @@ import com.manuelfabri.expenses.model.BaseEntity;
 
 
 @NoRepositoryBean
-public interface BaseEntityRepository<T extends BaseEntity> extends JpaRepository<T, Long> {
+public interface BaseEntityRepository<T extends BaseEntity>
+    extends JpaRepository<T, Long>, JpaSpecificationExecutor<T> {
 
   @Query("select e from #{#entityName} e where e.deleted = false and (e.owner.id = ?#{ principal?.id } or e.owner.id = 'system')")
   List<T> findActive();
