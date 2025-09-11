@@ -13,7 +13,7 @@ Expense tracker API
 ## Prerequisites
 
 - Docker and Docker Compose installed on your system.
-- [OPTIONAL] To run locally, Java 17 and a postgres DB.
+- [OPTIONAL] To run locally, Java 17 and,,, a postgres DB.
 
 ## Building and Running the Application
 
