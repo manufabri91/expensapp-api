@@ -31,9 +31,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(InvalidLoginException.class)
-  @ResponseStatus(value = HttpStatus.NOT_FOUND)
+  @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   public ResponseEntity<Object> handleInvalidLoginException(InvalidLoginException ex, WebRequest request) {
-    return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
+    return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED, request);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
