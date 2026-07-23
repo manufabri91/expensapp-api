@@ -40,16 +40,17 @@ public class TransactionController {
 
   @GetMapping
   public ResponseEntity<Page<TransactionDto>> getAllTransactions(
-      @RequestParam(required = false) TransactionTypeEnum type, @RequestParam(required = false) Long categoryId,
-      @RequestParam(required = false) BigDecimal minAmount, @RequestParam(required = false) BigDecimal maxAmount,
+      @RequestParam(required = false) TransactionTypeEnum type,
+      @RequestParam(required = false) List<Long> categoryIds, @RequestParam(required = false) List<Long> subcategoryIds,
+      @RequestParam(required = false) List<Long> accountIds, @RequestParam(required = false) BigDecimal minAmount,
+      @RequestParam(required = false) BigDecimal maxAmount,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fromDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime toDate,
       @PageableDefault(size = 20,
           page = 0) @SortDefault.SortDefaults({@SortDefault(sort = "eventDate", direction = Direction.DESC),
               @SortDefault(sort = "id", direction = Direction.DESC)}) Pageable pageable) {
-    return new ResponseEntity<>(
-        transactionService.getPagedTransactions(type, categoryId, minAmount, maxAmount, fromDate, toDate, pageable),
-        HttpStatus.OK);
+    return new ResponseEntity<>(transactionService.getPagedTransactions(type, categoryIds, subcategoryIds, accountIds,
+        minAmount, maxAmount, fromDate, toDate, pageable), HttpStatus.OK);
   }
 
   @GetMapping("/{year}/{month}")

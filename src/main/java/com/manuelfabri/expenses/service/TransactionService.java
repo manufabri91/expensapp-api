@@ -19,8 +19,9 @@ public interface TransactionService {
 
   void deleteTransaction(Long id);
 
-  Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, Long categoryId, BigDecimal minAmount,
-      BigDecimal maxAmount, OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable);
+  Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, List<Long> categoryIds,
+      List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
+      OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable);
 
   TransactionDto getById(Long id);
 
