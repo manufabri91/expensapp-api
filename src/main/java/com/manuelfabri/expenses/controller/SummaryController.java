@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
+import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.service.SummaryService;
 import com.manuelfabri.expenses.service.TransactionStatisticsService;
@@ -80,6 +81,11 @@ public class SummaryController {
   public ResponseEntity<Map<CurrencyEnum, BigDecimal>> getIncomesTotalsByYearAndMonth(@PathVariable int year,
       @PathVariable int month) {
     return new ResponseEntity<>(transactionStatisticsService.getIncomesTotalsByCurrency(year, month), HttpStatus.OK);
+  }
+
+  @GetMapping("/monthly-history/{months}")
+  public ResponseEntity<List<MonthlyBalanceSummaryDto>> getMonthlyHistory(@PathVariable int months) {
+    return new ResponseEntity<>(transactionStatisticsService.getMonthlyHistory(months), HttpStatus.OK);
   }
 
 }

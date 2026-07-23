@@ -1,6 +1,8 @@
 package com.manuelfabri.expenses.service.implementation;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
+import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.dto.SubTotalsPerSubcategoryDto;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.repository.TransactionRepository;
@@ -31,6 +34,7 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
       List<Object[]> totalsBySubcategory) {
     HashMap<Long, Map<CurrencyEnum, BigDecimal>> totalsPerCategory = new HashMap<>();
     HashMap<Long, String> categoryNames = new HashMap<>();
+    HashMap<Long, String> categoryColors = new HashMap<>();
     HashMap<Long, List<SubTotalsPerSubcategoryDto>> subtotalsPerCategory = new HashMap<>();
 
 
@@ -71,15 +75,17 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
       if (!categoryExistsInHashMap) {
         totalsPerCategory.put((Long) categoryTotal[0], new HashMap<>());
         categoryNames.put((Long) categoryTotal[0], (String) categoryTotal[1]);
+        categoryColors.put((Long) categoryTotal[0], (String) categoryTotal[2]);
       }
 
-      totalsPerCategory.get(categoryTotal[0]).put((CurrencyEnum) categoryTotal[2], (BigDecimal) categoryTotal[3]);
+      totalsPerCategory.get(categoryTotal[0]).put((CurrencyEnum) categoryTotal[3], (BigDecimal) categoryTotal[4]);
     });
 
     categoryNames.forEach((categoryId, categoryName) -> {
       var categoryTotalsDto = new CategoryTotalsDto();
       categoryTotalsDto.setId(categoryId);
       categoryTotalsDto.setName(categoryName);
+      categoryTotalsDto.setColor(categoryColors.get(categoryId));
       categoryTotalsDto.setTotals(totalsPerCategory.get(categoryId));
       categoryTotalsDto.setSubTotalsPerSubCategory(subtotalsPerCategory.get(categoryId));
       totalsPerCategoryDto.add(categoryTotalsDto);
@@ -164,5 +170,43 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
     List<Object[]> totalsBySubcategory =
         this.transactionRepository.getTransactionsTotalExpensesBySubcategory(year, month);
     return mapTotalsQueriesToDto(totalsByCategory, totalsBySubcategory);
+  }
+
+  @Override
+  public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months) {
+    OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+    List<Object[]> incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
+    List<Object[]> expenseResults = this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+
+    Map<String, MonthlyBalanceSummaryDto> monthlyBalancesByKey = new HashMap<>();
+
+    incomeResults.forEach(row -> {
+      var dto = getOrCreateMonthlyBalance(monthlyBalancesByKey, row);
+      dto.setIncomes((BigDecimal) row[3]);
+    });
+
+    expenseResults.forEach(row -> {
+      var dto = getOrCreateMonthlyBalance(monthlyBalancesByKey, row);
+      dto.setExpenses((BigDecimal) row[3]);
+    });
+
+    return new ArrayList<>(monthlyBalancesByKey.values());
+  }
+
+  private MonthlyBalanceSummaryDto getOrCreateMonthlyBalance(Map<String, MonthlyBalanceSummaryDto> monthlyBalancesByKey,
+      Object[] row) {
+    int year = ((Number) row[0]).intValue();
+    int month = ((Number) row[1]).intValue();
+    CurrencyEnum currency = (CurrencyEnum) row[2];
+    String key = year + "-" + month + "-" + currency;
+    return monthlyBalancesByKey.computeIfAbsent(key, k -> {
+      var dto = new MonthlyBalanceSummaryDto();
+      dto.setYear(year);
+      dto.setMonth(month);
+      dto.setCurrency(currency);
+      dto.setIncomes(BigDecimal.ZERO);
+      dto.setExpenses(BigDecimal.ZERO);
+      return dto;
+    });
   }
 }
