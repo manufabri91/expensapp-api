@@ -197,15 +197,18 @@ public class TransactionServiceImplementation implements TransactionService {
   }
 
   @Override
-  public Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, Long categoryId, BigDecimal minAmount,
-      BigDecimal maxAmount, OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable) {
+  public Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, List<Long> categoryIds,
+      List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
+      OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable) {
     Specification<Transaction> activeForCurrent = Specification.where(BaseEntitySpecifications.activeForCurrentUser());
 
     return transactionRepository.findAll(activeForCurrent.and(TransactionSpecifications.hasType(type))
-        .and(TransactionSpecifications.hasCategoryId(categoryId)).and(TransactionSpecifications.hasMinAmount(minAmount))
-        .and(TransactionSpecifications.hasMaxAmount(maxAmount)).and(TransactionSpecifications.occurredAfter(fromDate))
-        .and(TransactionSpecifications.occurredBefore(toDate)), pageable)
-        .map(transaction -> mapper.map(transaction, TransactionDto.class));
+        .and(TransactionSpecifications.hasCategoryIds(categoryIds))
+        .and(TransactionSpecifications.hasSubcategoryIds(subcategoryIds))
+        .and(TransactionSpecifications.hasAccountIds(accountIds))
+        .and(TransactionSpecifications.hasMinAmount(minAmount)).and(TransactionSpecifications.hasMaxAmount(maxAmount))
+        .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate)),
+        pageable).map(transaction -> mapper.map(transaction, TransactionDto.class));
   }
 
   @Transactional
