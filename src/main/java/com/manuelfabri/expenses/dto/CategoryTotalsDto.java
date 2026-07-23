@@ -13,6 +13,7 @@ public class CategoryTotalsDto {
   private Long id;
   @NotNull
   private String name;
+  private String color;
   @NotNull
   private Map<CurrencyEnum, BigDecimal> totals;
   @NotNull

@@ -49,13 +49,13 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getBalancesByCurrency(@Param("year") int year, @Param("month") int month);
 
-  @Query("SELECT t.category.id, t.category.name, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.account.currency")
+  @Query("SELECT t.category.id, t.category.name, t.category.color, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.category.color, t.account.currency")
   List<Object[]> getTransactionsTotalExpensesByCategory();
 
-  @Query("SELECT t.category.id, t.category.name, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.account.currency")
+  @Query("SELECT t.category.id, t.category.name, t.category.color, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.category.color, t.account.currency")
   List<Object[]> getTransactionsTotalExpensesByCategory(@Param("year") int year);
 
-  @Query("SELECT t.category.id, t.category.name, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.account.currency")
+  @Query("SELECT t.category.id, t.category.name, t.category.color, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.category.name, t.category.color, t.account.currency")
   List<Object[]> getTransactionsTotalExpensesByCategory(@Param("year") int year, @Param("month") int month);
 
   @Query("SELECT t.category.id, t.subcategory.id, t.subcategory.name, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.subcategory.id, t.subcategory.name, t.account.currency")
@@ -66,4 +66,10 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   @Query("SELECT t.category.id, t.subcategory.id, t.subcategory.name, t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } GROUP BY t.category.id, t.subcategory.id, t.subcategory.name, t.account.currency")
   List<Object[]> getTransactionsTotalExpensesBySubcategory(@Param("year") int year, @Param("month") int month);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount > 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalIncomesByMonth(@Param("fromDate") OffsetDateTime fromDate);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalExpensesByMonth(@Param("fromDate") OffsetDateTime fromDate);
 }

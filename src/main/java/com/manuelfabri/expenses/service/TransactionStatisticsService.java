@@ -1,6 +1,7 @@
 package com.manuelfabri.expenses.service;
 
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
+import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 
 import java.math.BigDecimal;
@@ -31,4 +32,6 @@ public interface TransactionStatisticsService {
   List<CategoryTotalsDto> getTotalsPerCategory(int year);
 
   List<CategoryTotalsDto> getTotalsPerCategory(int year, int month);
+
+  List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months);
 }
