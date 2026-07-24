@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.manuelfabri.expenses.constants.Urls;
+import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import com.manuelfabri.expenses.dto.TransactionDto;
@@ -51,6 +52,18 @@ public class TransactionController {
               @SortDefault(sort = "id", direction = Direction.DESC)}) Pageable pageable) {
     return new ResponseEntity<>(transactionService.getPagedTransactions(type, categoryIds, subcategoryIds, accountIds,
         minAmount, maxAmount, fromDate, toDate, pageable), HttpStatus.OK);
+  }
+
+  @GetMapping("/totals")
+  public ResponseEntity<List<BalanceSummaryDto>> getFilteredTotals(
+      @RequestParam(required = false) TransactionTypeEnum type,
+      @RequestParam(required = false) List<Long> categoryIds, @RequestParam(required = false) List<Long> subcategoryIds,
+      @RequestParam(required = false) List<Long> accountIds, @RequestParam(required = false) BigDecimal minAmount,
+      @RequestParam(required = false) BigDecimal maxAmount,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime toDate) {
+    return new ResponseEntity<>(transactionService.getFilteredTotals(type, categoryIds, subcategoryIds, accountIds,
+        minAmount, maxAmount, fromDate, toDate), HttpStatus.OK);
   }
 
   @GetMapping("/{year}/{month}")
