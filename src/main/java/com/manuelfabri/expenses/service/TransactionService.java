@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import com.manuelfabri.expenses.dto.TransactionDto;
+import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 
 
 public interface TransactionService {
@@ -22,6 +23,10 @@ public interface TransactionService {
   Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, List<Long> categoryIds,
       List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
       OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable);
+
+  List<BalanceSummaryDto> getFilteredTotals(TransactionTypeEnum type, List<Long> categoryIds,
+      List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
+      OffsetDateTime fromDate, OffsetDateTime toDate);
 
   TransactionDto getById(Long id);
 

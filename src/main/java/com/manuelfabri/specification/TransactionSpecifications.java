@@ -44,4 +44,8 @@ public class TransactionSpecifications {
   public static Specification<Transaction> occurredBefore(OffsetDateTime to) {
     return (root, query, cb) -> to == null ? null : cb.lessThanOrEqualTo(root.get("eventDate"), to);
   }
+
+  public static Specification<Transaction> notExcludedFromTotals() {
+    return (root, query, cb) -> cb.isFalse(root.get("excludeFromTotals"));
+  }
 }

@@ -3,7 +3,10 @@ package com.manuelfabri.expenses.service.implementation;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -11,11 +14,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.Category;
+import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.model.Subcategory;
 import com.manuelfabri.expenses.model.Transaction;
 import com.manuelfabri.expenses.model.TransactionTypeEnum;
@@ -209,6 +214,42 @@ public class TransactionServiceImplementation implements TransactionService {
         .and(TransactionSpecifications.hasMinAmount(minAmount)).and(TransactionSpecifications.hasMaxAmount(maxAmount))
         .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate)),
         pageable).map(transaction -> mapper.map(transaction, TransactionDto.class));
+  }
+
+  @Override
+  public List<BalanceSummaryDto> getFilteredTotals(TransactionTypeEnum type, List<Long> categoryIds,
+      List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
+      OffsetDateTime fromDate, OffsetDateTime toDate) {
+    Specification<Transaction> activeForCurrent = Specification.where(BaseEntitySpecifications.activeForCurrentUser());
+
+    List<Transaction> transactions = transactionRepository.findAll(activeForCurrent
+        .and(TransactionSpecifications.hasType(type)).and(TransactionSpecifications.hasCategoryIds(categoryIds))
+        .and(TransactionSpecifications.hasSubcategoryIds(subcategoryIds))
+        .and(TransactionSpecifications.hasAccountIds(accountIds))
+        .and(TransactionSpecifications.hasMinAmount(minAmount)).and(TransactionSpecifications.hasMaxAmount(maxAmount))
+        .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate))
+        .and(TransactionSpecifications.notExcludedFromTotals()));
+
+    Map<CurrencyEnum, BalanceSummaryDto> totalsByCurrency = new HashMap<>();
+    for (Transaction transaction : transactions) {
+      CurrencyEnum currency = transaction.getAccount().getCurrency();
+      BalanceSummaryDto dto = totalsByCurrency.computeIfAbsent(currency, c -> {
+        BalanceSummaryDto newDto = new BalanceSummaryDto();
+        newDto.setCurrency(c);
+        newDto.setTotalBalance(BigDecimal.ZERO);
+        newDto.setIncomes(BigDecimal.ZERO);
+        newDto.setExpenses(BigDecimal.ZERO);
+        return newDto;
+      });
+      BigDecimal amount = transaction.getAmount();
+      dto.setTotalBalance(dto.getTotalBalance().add(amount));
+      if (amount.compareTo(BigDecimal.ZERO) > 0) {
+        dto.setIncomes(dto.getIncomes().add(amount));
+      } else if (amount.compareTo(BigDecimal.ZERO) < 0) {
+        dto.setExpenses(dto.getExpenses().add(amount));
+      }
+    }
+    return new ArrayList<>(totalsByCurrency.values());
   }
 
   @Transactional
