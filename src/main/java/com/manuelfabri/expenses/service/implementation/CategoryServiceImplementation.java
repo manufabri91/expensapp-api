@@ -106,32 +106,4 @@ public class CategoryServiceImplementation implements CategoryService {
 
     this.categoryRepository.delete(category);
   }
-
-  @Override
-  public CategoryDto createTransferCategory(User user) {
-    // Initialize the user with TRANSFER categories and subcategories
-    Category transferCategory = new Category();
-    transferCategory.setType(TransactionTypeEnum.TRANSFER);
-    transferCategory.setName(DefaultCategories.TRANSFER);
-    transferCategory.setIconName(DefaultCategories.TRANSFER_ICON_NAME);
-    transferCategory.setColor(DefaultCategories.TRANSFER_COLOR);
-    transferCategory.setOwner(user);
-    transferCategory.setReadOnly(true);
-    Category savedCategory = categoryRepository.save(transferCategory);
-    // Create subcategories for the transfer category
-    Subcategory transferInSubcategory = new Subcategory();
-    transferInSubcategory.setName(DefaultCategories.TRANSFER_IN);
-    transferInSubcategory.setOwner(user);
-    transferInSubcategory.setParentCategory(savedCategory);
-    transferInSubcategory.setReadOnly(true);
-    subCategoryRepository.save(transferInSubcategory);
-    Subcategory transferOutSubcategory = new Subcategory();
-    transferOutSubcategory.setName(DefaultCategories.TRANSFER_OUT);
-    transferOutSubcategory.setOwner(user);
-    transferOutSubcategory.setParentCategory(savedCategory);
-    transferOutSubcategory.setReadOnly(true);
-    subCategoryRepository.save(transferOutSubcategory);
-
-    return mapper.map(savedCategory, CategoryDto.class);
-  }
 }

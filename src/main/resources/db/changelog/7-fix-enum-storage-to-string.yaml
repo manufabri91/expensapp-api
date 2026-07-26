@@ -1,0 +1,132 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7-1-widen-accounts-currency-column
+      author: manufabri91
+      comment: |
+        accounts.currency was being persisted as the CurrencyEnum ordinal (SMALLINT) because
+        the entity had no @Enumerated annotation. Widen it to VARCHAR so it can hold the
+        enum's .name() string instead, comfortably fitting the longest value (EUR/USD/ARS).
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE accounts ALTER COLUMN currency TYPE VARCHAR(30) USING currency::varchar;
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE accounts ALTER COLUMN currency TYPE SMALLINT USING currency::smallint;
+
+  - changeSet:
+      id: 7-2-convert-accounts-currency-values
+      author: manufabri91
+      comment: |
+        Convert existing accounts.currency values from CurrencyEnum ordinal (0=ARS, 1=USD,
+        2=EUR) to the enum's string name, matching the new @Enumerated(EnumType.STRING) mapping.
+      changes:
+        - sql:
+            sql: |
+              UPDATE accounts SET currency = CASE currency
+                WHEN '0' THEN 'ARS'
+                WHEN '1' THEN 'USD'
+                WHEN '2' THEN 'EUR'
+                ELSE currency
+              END;
+      rollback:
+        - sql:
+            sql: |
+              UPDATE accounts SET currency = CASE currency
+                WHEN 'ARS' THEN '0'
+                WHEN 'USD' THEN '1'
+                WHEN 'EUR' THEN '2'
+                ELSE currency
+              END;
+
+  - changeSet:
+      id: 7-3-widen-categories-type-column
+      author: manufabri91
+      comment: |
+        categories.type was being persisted as the TransactionTypeEnum ordinal (int) because
+        the entity had no @Enumerated annotation. Drop the numeric default before changing the
+        type (Postgres cannot auto-cast a numeric DEFAULT to VARCHAR), widen the column to
+        VARCHAR, then restore an equivalent string default.
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE categories ALTER COLUMN type DROP DEFAULT;
+              ALTER TABLE categories ALTER COLUMN type TYPE VARCHAR(30) USING type::varchar;
+              ALTER TABLE categories ALTER COLUMN type SET DEFAULT 'EXPENSE';
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE categories ALTER COLUMN type DROP DEFAULT;
+              ALTER TABLE categories ALTER COLUMN type TYPE INT USING type::int;
+              ALTER TABLE categories ALTER COLUMN type SET DEFAULT 1;
+
+  - changeSet:
+      id: 7-4-convert-categories-type-values
+      author: manufabri91
+      comment: |
+        Convert existing categories.type values from TransactionTypeEnum ordinal (0=INCOME,
+        1=EXPENSE, 2=TRANSFER) to the enum's string name, matching the new
+        @Enumerated(EnumType.STRING) mapping.
+      changes:
+        - sql:
+            sql: |
+              UPDATE categories SET type = CASE type
+                WHEN '0' THEN 'INCOME'
+                WHEN '1' THEN 'EXPENSE'
+                WHEN '2' THEN 'TRANSFER'
+                ELSE type
+              END;
+      rollback:
+        - sql:
+            sql: |
+              UPDATE categories SET type = CASE type
+                WHEN 'INCOME' THEN '0'
+                WHEN 'EXPENSE' THEN '1'
+                WHEN 'TRANSFER' THEN '2'
+                ELSE type
+              END;
+
+  - changeSet:
+      id: 7-5-widen-transactions-transactiontype-column
+      author: manufabri91
+      comment: |
+        transactions.transactiontype is already VARCHAR(20), which fits every current enum
+        name, but widen it to VARCHAR(30) for consistency with accounts.currency and
+        categories.type and to leave headroom for future TransactionTypeEnum values.
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE transactions ALTER COLUMN transactiontype TYPE VARCHAR(30);
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE transactions ALTER COLUMN transactiontype TYPE VARCHAR(20);
+
+  - changeSet:
+      id: 7-6-convert-transactions-transactiontype-values
+      author: manufabri91
+      comment: |
+        transactions.transactiontype was backfilled (see 5-add-transfer-support.yaml) and is
+        subsequently written by Hibernate using EnumType.ORDINAL, so it holds the literal
+        ordinal strings '0'/'1'/'2' of TransactionTypeEnum (0=INCOME, 1=EXPENSE, 2=TRANSFER).
+        Convert those to the enum's string name, matching the new
+        @Enumerated(EnumType.STRING) mapping.
+      changes:
+        - sql:
+            sql: |
+              UPDATE transactions SET transactiontype = CASE transactiontype
+                WHEN '0' THEN 'INCOME'
+                WHEN '1' THEN 'EXPENSE'
+                WHEN '2' THEN 'TRANSFER'
+                ELSE transactiontype
+              END;
+      rollback:
+        - sql:
+            sql: |
+              UPDATE transactions SET transactiontype = CASE transactiontype
+                WHEN 'INCOME' THEN '0'
+                WHEN 'EXPENSE' THEN '1'
+                WHEN 'TRANSFER' THEN '2'
+                ELSE transactiontype
+              END;

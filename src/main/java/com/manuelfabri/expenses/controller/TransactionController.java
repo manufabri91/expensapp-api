@@ -1,6 +1,5 @@
 package com.manuelfabri.expenses.controller;
 
-import java.security.Principal;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,7 +71,7 @@ public class TransactionController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<TransactionDto> getById(@PathVariable Long id, Principal principal) {
+  public ResponseEntity<TransactionDto> getById(@PathVariable Long id) {
     return new ResponseEntity<>(transactionService.getById(id), HttpStatus.OK);
   }
 

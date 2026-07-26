@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 
 @Entity(name = "transactions")
 public class Transaction extends BaseEntity {
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, name = "transactiontype")
   private TransactionTypeEnum type;
 
@@ -44,8 +47,7 @@ public class Transaction extends BaseEntity {
   public Transaction() {}
 
   public Transaction(Long id, OffsetDateTime eventDate, String description, BigDecimal amount,
-      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory, TransactionTypeEnum type,
-      Long linkedTransactionId) {
+      CurrencyEnum currencyCode, User owner, Category category, Subcategory subcategory, TransactionTypeEnum type) {
     this.id = id;
     this.eventDate = eventDate;
     this.description = description;

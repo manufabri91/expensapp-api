@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/5-add-transfer-support.yaml
   - include:
       file: db/changelog/6-update-categories-and-subcategories.yaml
+  - include:
+      file: db/changelog/7-fix-enum-storage-to-string.yaml
