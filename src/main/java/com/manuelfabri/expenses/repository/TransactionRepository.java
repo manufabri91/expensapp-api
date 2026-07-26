@@ -22,7 +22,7 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
   List<Transaction> findByOwnerAndEventDateBetweenAndDeletedFalse(User user, OffsetDateTime dateStart,
       OffsetDateTime dateEnd);
 
-  @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.type > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
+  @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getTransactionsTotalIncomes();
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")

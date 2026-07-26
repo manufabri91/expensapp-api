@@ -12,8 +12,6 @@ import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 
 
 public interface TransactionService {
-  List<TransactionDto> getAllTransactions();
-
   TransactionDto createTransaction(TransactionRequestDto transactionDto);
 
   TransactionDto updateTransaction(Long id, TransactionRequestDto transactionDto);

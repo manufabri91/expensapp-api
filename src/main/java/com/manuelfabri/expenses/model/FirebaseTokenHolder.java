@@ -6,9 +6,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class FirebaseTokenHolder {
 
@@ -44,10 +44,14 @@ public class FirebaseTokenHolder {
 
   public List<GrantedAuthority> getRoles() {
     List<GrantedAuthority> roles = new ArrayList<>();
-    Set<String> keys = token.getClaims().keySet();
-    keys.forEach(role -> {
-      roles.add(new SimpleGrantedAuthority(role));
-    });
+    Object rolesClaim = token.getClaims().get("roles");
+    if (rolesClaim instanceof Collection<?> rolesCollection) {
+      rolesCollection.forEach(role -> {
+        if (role != null) {
+          roles.add(new SimpleGrantedAuthority(role.toString()));
+        }
+      });
+    }
     return roles;
   }
 }

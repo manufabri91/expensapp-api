@@ -85,7 +85,7 @@ public class TransactionServiceImplementation implements TransactionService {
     Subcategory subcategory = null;
     if (transactionDto.getType() != TransactionTypeEnum.TRANSFER) {
       if (categoryId == null) {
-        throw new IllegalArgumentException("MISSING_ACCOUNT");
+        throw new IllegalArgumentException("MISSING_CATEGORY");
       }
       if (subcategoryId == null) {
         throw new IllegalArgumentException("MISSING_SUBCATEGORY");
@@ -145,6 +145,7 @@ public class TransactionServiceImplementation implements TransactionService {
         getTransferAccount(transferSourceDto.getDestinationAccountId(), relatedEntityTriple.account);
 
     Transaction linked = mapper.map(transferSourceDto, Transaction.class);
+    linked.setId(null);
 
     TransferCategories transferCategories = getTransferCategory();
     linked.setDescription("TRANSFER.IN.DESCRIPTION");
@@ -169,6 +170,7 @@ public class TransactionServiceImplementation implements TransactionService {
     Subcategory transactionSubcategory = entities.subcategory;
 
     Transaction transaction = mapper.map(transactionDto, Transaction.class);
+    transaction.setId(null); // TODO: Check if this is necessary
 
     var amount = transaction.getAmount().abs();
     if (transaction.getType() == TransactionTypeEnum.EXPENSE || transaction.getType() == TransactionTypeEnum.TRANSFER) {
@@ -193,12 +195,6 @@ public class TransactionServiceImplementation implements TransactionService {
     }
 
     return mapper.map(newTransaction, TransactionDto.class);
-  }
-
-  @Override
-  public List<TransactionDto> getAllTransactions() {
-    return this.transactionRepository.findAll().stream()
-        .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
 
   @Override

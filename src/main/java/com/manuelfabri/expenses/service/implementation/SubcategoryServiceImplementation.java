@@ -98,7 +98,7 @@ public class SubcategoryServiceImplementation implements SubcategoryService {
   @Override
   public List<SubcategoryDto> getByParentId(Long id) {
     return this.subcategoryRepository.findActive().stream()
-        .filter(subcategory -> subcategory.getParentCategory().getId() == id)
+        .filter(subcategory -> subcategory.getParentCategory().getId().equals(id))
         .map(category -> mapper.map(category, SubcategoryDto.class)).collect(Collectors.toList());
   }
 }

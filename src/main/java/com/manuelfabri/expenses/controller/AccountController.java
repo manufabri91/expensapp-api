@@ -1,6 +1,5 @@
 package com.manuelfabri.expenses.controller;
 
-import java.security.Principal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +32,7 @@ public class AccountController {
   }
 
   @GetMapping
-  public ResponseEntity<List<AccountDto>> getAllAccounts(Principal principal) {
+  public ResponseEntity<List<AccountDto>> getAllAccounts() {
     return new ResponseEntity<>(accountService.getAllAccounts(), HttpStatus.OK);
   }
 

@@ -5,10 +5,8 @@ import java.time.OffsetDateTime;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.model.TransactionTypeEnum;
 
-import jakarta.validation.constraints.Negative;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
@@ -20,8 +18,6 @@ public class TransactionDto {
   private OffsetDateTime eventDate;
   @NotBlank(message = "Description cannot be blank or null")
   private String description;
-  @Positive
-  @Negative
   private BigDecimal amount;
   private TransactionTypeEnum type;
   @NotNull
