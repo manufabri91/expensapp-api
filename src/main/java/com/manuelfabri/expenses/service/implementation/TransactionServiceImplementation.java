@@ -29,6 +29,7 @@ import com.manuelfabri.expenses.repository.AccountRepository;
 import com.manuelfabri.expenses.repository.CategoryRepository;
 import com.manuelfabri.expenses.repository.SubcategoryRepository;
 import com.manuelfabri.expenses.repository.TransactionRepository;
+import com.manuelfabri.expenses.service.TransactionRelatedEntities;
 import com.manuelfabri.expenses.service.TransactionService;
 import com.manuelfabri.specification.BaseEntitySpecifications;
 import com.manuelfabri.specification.TransactionSpecifications;
@@ -52,18 +53,6 @@ public class TransactionServiceImplementation implements TransactionService {
     this.mapper = mapper;
   }
 
-  private static class EntityTriple {
-    public final Account account;
-    public final Category category;
-    public final Subcategory subcategory;
-
-    public EntityTriple(Account account, Category category, Subcategory subcategory) {
-      this.account = account;
-      this.category = category;
-      this.subcategory = subcategory;
-    }
-  }
-
   private static class TransferCategories {
     public final Category category;
     public final Subcategory subcategoryIn;
@@ -76,7 +65,7 @@ public class TransactionServiceImplementation implements TransactionService {
     }
   }
 
-  private EntityTriple getTransactionRelatedEntities(TransactionRequestDto transactionDto) {
+  private TransactionRelatedEntities getTransactionRelatedEntities(TransactionRequestDto transactionDto) {
     Long accountId = transactionDto.getAccountId();
     Long categoryId = transactionDto.getCategoryId();
     Long subcategoryId = transactionDto.getSubcategoryId();
@@ -105,7 +94,7 @@ public class TransactionServiceImplementation implements TransactionService {
     Account account = accountRepository.findActiveById(accountId)
         .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
 
-    return new EntityTriple(account, category, subcategory);
+    return new TransactionRelatedEntities(account, category, subcategory);
   }
 
   private TransferCategories getTransferCategory() {
@@ -139,10 +128,10 @@ public class TransactionServiceImplementation implements TransactionService {
   }
 
   private Transaction createTransferCounterpart(TransactionRequestDto transferSourceDto,
-      EntityTriple relatedEntityTriple, Transaction linkTransaction) {
+      TransactionRelatedEntities relatedEntities, Transaction linkTransaction) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Account destinationAccount =
-        getTransferAccount(transferSourceDto.getDestinationAccountId(), relatedEntityTriple.account);
+        getTransferAccount(transferSourceDto.getDestinationAccountId(), relatedEntities.account());
 
     Transaction linked = mapper.map(transferSourceDto, Transaction.class);
     linked.setId(null);
@@ -152,7 +141,7 @@ public class TransactionServiceImplementation implements TransactionService {
     linked.setAmount(transferSourceDto.getAmount().abs());
     linked.setAccount(destinationAccount);
     linked.setOwner(user);
-    linked.setCategory(relatedEntityTriple.category);
+    linked.setCategory(relatedEntities.category());
     linked.setSubcategory(transferCategories.subcategoryIn);
     linked.setLinkedTransaction(linkTransaction);
     linked.setExcludeFromTotals(true);
@@ -164,18 +153,15 @@ public class TransactionServiceImplementation implements TransactionService {
   public TransactionDto createTransaction(TransactionRequestDto transactionDto) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    EntityTriple entities = getTransactionRelatedEntities(transactionDto);
-    Account transactionAccount = entities.account;
-    Category transactionCategory = entities.category;
-    Subcategory transactionSubcategory = entities.subcategory;
+    TransactionRelatedEntities entities = getTransactionRelatedEntities(transactionDto);
+    Account transactionAccount = entities.account();
+    Category transactionCategory = entities.category();
+    Subcategory transactionSubcategory = entities.subcategory();
 
     Transaction transaction = mapper.map(transactionDto, Transaction.class);
     transaction.setId(null); // TODO: Check if this is necessary
 
-    var amount = transaction.getAmount().abs();
-    if (transaction.getType() == TransactionTypeEnum.EXPENSE || transaction.getType() == TransactionTypeEnum.TRANSFER) {
-      amount = amount.negate();
-    }
+    var amount = transaction.getType().applySign(transaction.getAmount());
     if (transaction.getType() == TransactionTypeEnum.TRANSFER) {
       transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
     }
@@ -251,10 +237,10 @@ public class TransactionServiceImplementation implements TransactionService {
   @Transactional
   @Override
   public TransactionDto updateTransaction(Long id, TransactionRequestDto transactionDto) {
-    EntityTriple entities = getTransactionRelatedEntities(transactionDto);
-    Account transactionNewAccount = entities.account;
-    Category transactionNewCategory = entities.category;
-    Subcategory transactionNewSubcategory = entities.subcategory;
+    TransactionRelatedEntities entities = getTransactionRelatedEntities(transactionDto);
+    Account transactionNewAccount = entities.account();
+    Category transactionNewCategory = entities.category();
+    Subcategory transactionNewSubcategory = entities.subcategory();
     Long idToDelete = null;
     Transaction transaction = this.transactionRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
@@ -263,10 +249,7 @@ public class TransactionServiceImplementation implements TransactionService {
 
 
     if (newType != TransactionTypeEnum.TRANSFER) {
-      var amount = transactionDto.getAmount().abs();
-      if (newType == TransactionTypeEnum.EXPENSE) {
-        amount = amount.negate();
-      }
+      var amount = newType.applySign(transactionDto.getAmount());
 
       transaction.setEventDate(transactionDto.getEventDate());
       transaction.setAmount(amount);
@@ -289,7 +272,7 @@ public class TransactionServiceImplementation implements TransactionService {
       transaction.setEventDate(transactionDto.getEventDate());
       transaction.setExcludeFromTotals(true);
       transaction.setType(TransactionTypeEnum.TRANSFER);
-      transaction.setAmount(transactionDto.getAmount().abs().negate());
+      transaction.setAmount(TransactionTypeEnum.TRANSFER.applySign(transactionDto.getAmount()));
       transaction.setAccount(transactionNewAccount);
       transaction.setCategory(transferCategories.category);
       transaction.setSubcategory(transferCategories.subcategoryOut);

@@ -15,3 +15,5 @@ databaseChangeLog:
       file: db/changelog/6-update-categories-and-subcategories.yaml
   - include:
       file: db/changelog/7-fix-enum-storage-to-string.yaml
+  - include:
+      file: db/changelog/8-add-recurrent-transactions.yaml

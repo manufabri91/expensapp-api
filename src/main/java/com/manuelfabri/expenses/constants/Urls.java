@@ -12,4 +12,5 @@ public final class Urls {
   public static final String CATEGORY = "/category";
   public static final String SUBCATEGORY = "/subcategory";
   public static final String SUMMARY = "/summary";
+  public static final String RECURRENT_TRANSACTION = "/recurrent-transaction";
 }
