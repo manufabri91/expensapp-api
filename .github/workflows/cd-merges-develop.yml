@@ -63,7 +63,7 @@ jobs:
     container: ghcr.io/railwayapp/cli:latest
     env:
       SVC_ID: expensapp-api
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_DEV }}
     steps:
       - uses: actions/checkout@v3
       - run: railway redeploy -y --service=${{ env.SVC_ID }} --environment=dev
