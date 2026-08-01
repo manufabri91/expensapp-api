@@ -3,8 +3,10 @@ package com.manuelfabri.expenses.service.implementation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
@@ -42,6 +45,7 @@ import com.manuelfabri.expenses.repository.CategoryRepository;
 import com.manuelfabri.expenses.repository.RecurrentTransactionRepository;
 import com.manuelfabri.expenses.repository.SubcategoryRepository;
 import com.manuelfabri.expenses.service.RecurrenceDateCalculator;
+import com.manuelfabri.expenses.service.RecurrentTransactionGeneratorService;
 
 @ExtendWith(MockitoExtension.class)
 class RecurrentTransactionServiceImplementationTest {
@@ -56,6 +60,8 @@ class RecurrentTransactionServiceImplementationTest {
   private SubcategoryRepository subcategoryRepository;
   @Mock
   private RecurrenceDateCalculator dateCalculator;
+  @Mock
+  private RecurrentTransactionGeneratorService generatorService;
 
   private RecurrentTransactionServiceImplementation service;
   private User currentUser;
@@ -70,7 +76,7 @@ class RecurrentTransactionServiceImplementationTest {
         .setSkipNullEnabled(true);
 
     service = new RecurrentTransactionServiceImplementation(recurrentTransactionRepository, accountRepository,
-        categoryRepository, subcategoryRepository, dateCalculator, mapper);
+        categoryRepository, subcategoryRepository, dateCalculator, generatorService, mapper);
 
     currentUser = new User("owner-1", "owner@example.com", "owner", "Owner", "One", List.of());
     account = new Account(10L, "Checking", CurrencyEnum.USD, currentUser);
@@ -218,6 +224,37 @@ class RecurrentTransactionServiceImplementationTest {
 
     assertThat(result.getIntervalDays()).isNull();
     assertThat(result.getDaysOfMonth()).containsExactlyInAnyOrder(1, 15);
+  }
+
+  @Test
+  void create_immediatelyAsksTheGeneratorToBackfillTodaysOccurrence() {
+    RecurrentTransactionRequestDto requestDto = intervalRequestDto();
+    stubRelatedEntities();
+    when(dateCalculator.nextDueDate(any())).thenReturn(Optional.empty());
+    when(recurrentTransactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    service.create(requestDto);
+
+    ArgumentCaptor<RecurrentTransaction> recurrenceCaptor = ArgumentCaptor.forClass(RecurrentTransaction.class);
+    verify(generatorService).generateForRecurrence(recurrenceCaptor.capture(), eq(LocalDate.now(ZoneOffset.UTC)));
+    assertThat(recurrenceCaptor.getValue().getDescription()).isEqualTo("Streaming subscription");
+  }
+
+  @Test
+  void update_doesNotAskTheGeneratorToBackfillAnything() {
+    RecurrentTransaction existingRecurrence = new RecurrentTransaction();
+    existingRecurrence.setId(1L);
+    existingRecurrence.setOwner(currentUser);
+    existingRecurrence.setStatus(RecurrenceStatusEnum.ACTIVE);
+    when(recurrentTransactionRepository.findActiveById(1L)).thenReturn(Optional.of(existingRecurrence));
+    RecurrentTransactionRequestDto requestDto = intervalRequestDto();
+    stubRelatedEntities();
+    when(dateCalculator.nextDueDate(any())).thenReturn(Optional.empty());
+    when(recurrentTransactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    service.update(1L, requestDto);
+
+    verifyNoInteractions(generatorService);
   }
 
   @Test

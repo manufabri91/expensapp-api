@@ -1,5 +1,7 @@
 package com.manuelfabri.expenses.service.implementation;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import com.manuelfabri.expenses.repository.CategoryRepository;
 import com.manuelfabri.expenses.repository.RecurrentTransactionRepository;
 import com.manuelfabri.expenses.repository.SubcategoryRepository;
 import com.manuelfabri.expenses.service.RecurrenceDateCalculator;
+import com.manuelfabri.expenses.service.RecurrentTransactionGeneratorService;
 import com.manuelfabri.expenses.service.RecurrentTransactionService;
 import com.manuelfabri.expenses.service.TransactionRelatedEntities;
 
@@ -33,16 +36,19 @@ public class RecurrentTransactionServiceImplementation implements RecurrentTrans
   private CategoryRepository categoryRepository;
   private SubcategoryRepository subcategoryRepository;
   private RecurrenceDateCalculator dateCalculator;
+  private RecurrentTransactionGeneratorService generatorService;
   private ModelMapper mapper;
 
   public RecurrentTransactionServiceImplementation(RecurrentTransactionRepository recurrentTransactionRepository,
       AccountRepository accountRepository, CategoryRepository categoryRepository,
-      SubcategoryRepository subcategoryRepository, RecurrenceDateCalculator dateCalculator, ModelMapper mapper) {
+      SubcategoryRepository subcategoryRepository, RecurrenceDateCalculator dateCalculator,
+      RecurrentTransactionGeneratorService generatorService, ModelMapper mapper) {
     this.recurrentTransactionRepository = recurrentTransactionRepository;
     this.accountRepository = accountRepository;
     this.categoryRepository = categoryRepository;
     this.subcategoryRepository = subcategoryRepository;
     this.dateCalculator = dateCalculator;
+    this.generatorService = generatorService;
     this.mapper = mapper;
   }
 
@@ -109,6 +115,10 @@ public class RecurrentTransactionServiceImplementation implements RecurrentTrans
     applyRequestToEntity(recurrence, requestDto, entities);
 
     RecurrentTransaction saved = recurrentTransactionRepository.save(recurrence);
+    // The nightly job only picks up occurrences due as of its next run, so without this a
+    // recurrence created today for today (an interval start date, or a monthly day matching
+    // today) wouldn't produce its first transaction until after midnight.
+    generatorService.generateForRecurrence(saved, OffsetDateTime.now(ZoneOffset.UTC).toLocalDate());
     return toDto(saved);
   }
 
