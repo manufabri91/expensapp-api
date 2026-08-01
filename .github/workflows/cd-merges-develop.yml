@@ -1,0 +1,69 @@
+name: Build and Push Docker Image (Beta)
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Create .env file
+        run: |
+          echo "PROFILE=dev" >> .env
+          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" >> .env
+          echo "DECRYPT_KEY=${{ secrets.DECRYPT_KEY }}" >> .env
+
+      - name: Set short SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:beta
+            ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:beta-${{ steps.sha.outputs.short_sha }}
+          build-args: |
+            PROFILE=dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      SVC_ID: expensapp-api
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: railway redeploy -y --service=${{ env.SVC_ID }} --environment=dev
