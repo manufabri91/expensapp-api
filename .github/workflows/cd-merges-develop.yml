@@ -36,8 +36,8 @@ jobs:
       - name: Create .env file
         run: |
           echo "PROFILE=dev" >> .env
-          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> .env
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" >> .env
+          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY_DEV }}" >> .env
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_DEV }}" >> .env
           echo "DECRYPT_KEY=${{ secrets.DECRYPT_KEY }}" >> .env
 
       - name: Set short SHA
