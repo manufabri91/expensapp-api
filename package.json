@@ -1,0 +1,13 @@
+{
+  "name": "expensapp-api-hooks",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Git hook tooling for expensapp-api. This project is Java/Maven; Node is only used here to manage the pre-push coverage check via Husky.",
+  "scripts": {
+    "prepare": "husky",
+    "check:diff-coverage": "node scripts/check-diff-coverage.mjs"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
