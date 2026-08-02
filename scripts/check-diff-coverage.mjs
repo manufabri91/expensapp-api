@@ -2,7 +2,8 @@
 // Enforces the same 80% rule Codecov's "patch" check applies in CI (see ../codecov.yml), but
 // locally and pre-push: only lines added/changed under src/main/java since the branch diverged
 // from origin/develop need to be covered - untested pre-existing code is never penalized. Run
-// manually with `npm run check:diff-coverage`; wired into .husky/pre-push automatically.
+// manually with `node scripts/check-diff-coverage.mjs`; wired into .githooks/pre-push, activated
+// once per clone via `git config core.hooksPath .githooks` (see README).
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
