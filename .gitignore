@@ -4,6 +4,12 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Node (git hook tooling only - see package.json) ###
+node_modules/
+
+### Claude Code local session state ###
+.claude/
+
 ### STS ###
 .apt_generated
 .classpath

@@ -17,10 +17,7 @@ jobs:
           distribution: "temurin"
           cache: maven
 
-      # `verify` runs the full lifecycle up to and including it (compile, test, package), and is
-      # also the phase jacoco:check binds to by default - a single invocation builds, tests, and
-      # enforces the coverage gate defined in pom.xml, instead of running the build twice.
-      - name: Build, test, and check coverage with Maven
+      - name: Build and test with Maven
         run: mvn -B verify --file pom.xml
 
       - name: Upload JaCoCo coverage report
@@ -30,3 +27,13 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
           retention-days: 14
+
+      # Codecov's patch/project checks (see codecov.yml) gate PRs against this report, ratcheting
+      # coverage up over time instead of a hand-maintained jacoco:check <includes> list.
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./target/site/jacoco/jacoco.xml
+          fail_ci_if_error: true

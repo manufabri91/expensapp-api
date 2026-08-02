@@ -114,3 +114,18 @@
   then add `@WebMvcTest` coverage for controllers as they're touched, and treat true integration/E2E tests
   (Testcontainers + a real Postgres, or a full request against a running app) as a separate, later effort once the
   unit-test base is in place.
+
+## Coverage
+
+- Coverage is enforced via [Codecov](https://codecov.io), not a hand-maintained `jacoco:check` `<includes>` list in
+  `pom.xml`. `codecov.yml` defines two checks: `patch` (80% of lines you added/changed in a PR must be covered) and
+  `project` (`target: auto` — total coverage must not regress from the base branch). This ratchets coverage upward
+  over time without anyone maintaining a per-class allowlist.
+- `pom.xml`'s `jacoco-maven-plugin` only runs `prepare-agent` + `report` (producing
+  `target/site/jacoco/jacoco.xml`, bound to the `test` phase) — no local `check` goal. `mvn verify` still runs
+  cleanly; it just no longer fails the build on a coverage shortfall itself (Codecov's PR check does that).
+- A Husky `pre-push` git hook (`scripts/check-diff-coverage.mjs`, wired via `.husky/pre-push`) mirrors Codecov's
+  `patch` check locally: it runs `mvn test`, diffs `src/main/java` against `origin/develop`, and fails the push if
+  the *added* lines fall under 80% covered — so a coverage regression is caught before you even open a PR, not
+  just in CI. Requires one-time `npm install` after cloning (see the README's Getting Started section) to install
+  the hook.
