@@ -64,7 +64,7 @@ code here; this README is about getting the project running.
 
 - **Docker & Docker Compose** — the fastest way to run the full stack (API + Postgres) locally.
 - **[OPTIONAL]** Java 17 and a local PostgreSQL instance, if you'd rather run the app directly instead of via Docker.
-- **[OPTIONAL]** Node.js — only needed to install the pre-push coverage git hook (see [Testing & Coverage](#testing--coverage)); the API itself has no Node dependency.
+- **[OPTIONAL]** Node.js — only needed to *run* the pre-push coverage check script (see [Testing & Coverage](#testing--coverage)); there's no `package.json`/`npm install` step, the API has no Node dependency otherwise.
 
 ### 1. Clone the repository
 
@@ -114,15 +114,16 @@ via your own `application.yml`/env):
 ./mvnw spring-boot:run
 ```
 
-### 5. Install the pre-push git hook (one-time)
+### 5. Activate the pre-push git hook (one-time)
 
 ```bash
-npm install
+git config core.hooksPath .githooks
 ```
 
-This wires up a Husky `pre-push` hook that runs the test suite and checks that any lines you're about to push are
-adequately covered — see [Testing & Coverage](#testing--coverage). It's the only reason this Java project has a
-`package.json`.
+This points your local clone at the checked-in `.githooks/` directory, so `git push` runs
+`scripts/check-diff-coverage.mjs` first — it runs the test suite and checks that any lines you're about to push
+are adequately covered. See [Testing & Coverage](#testing--coverage). Requires Node.js to run the script itself;
+nothing else in this repo needs it.
 
 ## Environment Variables
 
@@ -197,9 +198,10 @@ the `app.cors.allowed-origins` property (defaults to `http://localhost:3000` if 
   `pom.xml`'s `jacoco-maven-plugin` only produces the report (`target/site/jacoco/jacoco.xml`) that Codecov reads —
   it no longer fails the build itself.
 - **A pre-push git hook mirrors the `patch` check locally**, so a coverage regression is caught before you even
-  open a PR: `.husky/pre-push` runs `scripts/check-diff-coverage.mjs`, which runs `mvn test`, diffs
+  open a PR: `.githooks/pre-push` runs `scripts/check-diff-coverage.mjs`, which runs `mvn test`, diffs
   `src/main/java` against `origin/develop`, and fails the push if the lines you added fall under 80% covered.
-  Requires a one-time `npm install` after cloning (see [Getting Started](#getting-started)).
+  Requires a one-time `git config core.hooksPath .githooks` after cloning (see [Getting Started](#getting-started)),
+  and Node.js to run the script.
 
 ## Contributing
 

@@ -124,8 +124,9 @@
 - `pom.xml`'s `jacoco-maven-plugin` only runs `prepare-agent` + `report` (producing
   `target/site/jacoco/jacoco.xml`, bound to the `test` phase) — no local `check` goal. `mvn verify` still runs
   cleanly; it just no longer fails the build on a coverage shortfall itself (Codecov's PR check does that).
-- A Husky `pre-push` git hook (`scripts/check-diff-coverage.mjs`, wired via `.husky/pre-push`) mirrors Codecov's
-  `patch` check locally: it runs `mvn test`, diffs `src/main/java` against `origin/develop`, and fails the push if
-  the *added* lines fall under 80% covered — so a coverage regression is caught before you even open a PR, not
-  just in CI. Requires one-time `npm install` after cloning (see the README's Getting Started section) to install
-  the hook.
+- A `pre-push` git hook (`scripts/check-diff-coverage.mjs`, wired via the checked-in `.githooks/pre-push`) mirrors
+  Codecov's `patch` check locally: it runs `mvn test`, diffs `src/main/java` against `origin/develop`, and fails
+  the push if the *added* lines fall under 80% covered — so a coverage regression is caught before you even open
+  a PR, not just in CI. No `package.json`/npm involved — it's a plain script, activated once per clone via
+  `git config core.hooksPath .githooks` (see the README's Getting Started section). Node.js is only needed to run
+  the script itself.
