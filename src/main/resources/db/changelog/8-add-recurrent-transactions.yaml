@@ -1,0 +1,201 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8-1-create-recurrenttransactions-table
+      author: manufabri91
+      comment: "Create recurring transactions table"
+      changes:
+        - createTable:
+            tableName: recurrenttransactions
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  name: createdat
+                  type: TIMESTAMP
+              - column:
+                  name: createdby
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BOOLEAN
+              - column:
+                  name: deletedat
+                  type: TIMESTAMP
+              - column:
+                  name: deletedby
+                  type: VARCHAR(255)
+              - column:
+                  name: updatedat
+                  type: TIMESTAMP
+              - column:
+                  name: updatedby
+                  type: VARCHAR(255)
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: transactiontype
+                  type: VARCHAR(30)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: amount
+                  type: DECIMAL(38, 2)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: description
+                  type: VARCHAR(80)
+              - column:
+                  name: accountid
+                  type: BIGSERIAL
+              - column:
+                  name: category
+                  type: BIGSERIAL
+              - column:
+                  name: subcategory
+                  type: BIGSERIAL
+              - column:
+                  constraints:
+                    nullable: false
+                  name: frequency
+                  type: VARCHAR(30)
+              - column:
+                  name: intervaldays
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: startdate
+                  type: TIMESTAMP
+              - column:
+                  name: enddate
+                  type: TIMESTAMP
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status
+                  type: VARCHAR(20)
+              - column:
+                  name: lastgenerateddate
+                  type: TIMESTAMP
+              - column:
+                  constraints:
+                    nullable: false
+                  name: excludefromtotals
+                  type: BOOLEAN
+        - createTable:
+            tableName: recurrenttransaction_days_of_month
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: recurrenttransactionid
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: day_of_month
+                  type: INT
+
+  - changeSet:
+      id: 8-2-create-recurrenttransactions-indexes
+      author: manufabri91
+      comment: "Create indexes for recurring transactions"
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: owner
+            indexName: IDX_recurrenttransactions_owner
+            tableName: recurrenttransactions
+        - createIndex:
+            columns:
+              - column:
+                  name: accountid
+            indexName: IDX_recurrenttransactions_accountid
+            tableName: recurrenttransactions
+        - createIndex:
+            columns:
+              - column:
+                  name: category
+            indexName: IDX_recurrenttransactions_category
+            tableName: recurrenttransactions
+        - createIndex:
+            columns:
+              - column:
+                  name: subcategory
+            indexName: IDX_recurrenttransactions_subcategory
+            tableName: recurrenttransactions
+        - createIndex:
+            columns:
+              - column:
+                  name: status
+            indexName: IDX_recurrenttransactions_status
+            tableName: recurrenttransactions
+        - createIndex:
+            columns:
+              - column:
+                  name: recurrenttransactionid
+            indexName: IDX_recurrenttx_daysofmonth_parent
+            tableName: recurrenttransaction_days_of_month
+
+  - changeSet:
+      id: 8-3-create-recurrenttransactions-fks
+      author: manufabri91
+      comment: "Create FKs for recurring transactions"
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: owner
+            baseTableName: recurrenttransactions
+            constraintName: FK_recurrenttransactions_owner
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: accountid
+            baseTableName: recurrenttransactions
+            constraintName: FK_recurrenttransactions_account
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: accounts
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: category
+            baseTableName: recurrenttransactions
+            constraintName: FK_recurrenttransactions_category
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: categories
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: subcategory
+            baseTableName: recurrenttransactions
+            constraintName: FK_recurrenttransactions_subcategory
+            onDelete: RESTRICT
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: subcategories
+            validate: true
+        - addForeignKeyConstraint:
+            baseColumnNames: recurrenttransactionid
+            baseTableName: recurrenttransaction_days_of_month
+            constraintName: FK_recurrenttx_daysofmonth_parent
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: recurrenttransactions
+            validate: true

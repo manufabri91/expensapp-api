@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Claude Code local session state ###
+.claude/
+
 ### STS ###
 .apt_generated
 .classpath

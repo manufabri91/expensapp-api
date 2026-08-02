@@ -1,0 +1,3 @@
+#!/bin/sh
+# Activated once per clone via: git config core.hooksPath .githooks
+node scripts/check-diff-coverage.mjs
