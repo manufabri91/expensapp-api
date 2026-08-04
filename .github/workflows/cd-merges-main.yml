@@ -111,6 +111,9 @@ jobs:
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
+          # main requires a PR for changes; the default GITHUB_TOKEN (github-actions[bot]) can't
+          # bypass that. GH_PAT (also used by the build job's tag push) belongs to an admin, who can.
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
           git add pom.xml
           git commit -m "Bump version after release [skip ci]" || echo "No changes to commit"
           git push
