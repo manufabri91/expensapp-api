@@ -220,7 +220,14 @@ Three GitHub Actions workflows:
 | ---------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
 | `ci-build-test.yml`         | PR → `main` or `develop`         | `mvn verify` (build + test), uploads the JaCoCo report as an artifact and to Codecov |
 | `cd-merges-develop.yml`     | Push → `develop`                 | Builds a `beta`-tagged Docker image, pushes to Docker Hub, redeploys the `dev` Railway environment |
-| `cd-merges-main.yml`        | Push → `main`                    | Builds a versioned Docker image, pushes to Docker Hub, tags the release in git, redeploys the production Railway environment, bumps `pom.xml` to the next `-SNAPSHOT` version |
+| `cd-merges-main.yml`        | Push → `main`                    | Builds a versioned Docker image, pushes to Docker Hub, tags the release in git, redeploys the production Railway environment |
+
+Release versioning is computed entirely from git tags at release time - `pom.xml`'s `<version>` is not used for
+this. `cd-merges-main.yml` looks up the PR that produced the push to `main` (via GitHub's "associated pull
+requests" API, so it works regardless of merge/squash/rebase strategy): a `fix/`, `bugfix/`, or `hotfix/` branch
+bumps the patch version, anything else (the normal `develop` → `main` flow) bumps the minor version and resets
+patch to `0`. Major versions are bumped manually/ad hoc (create and push the tag yourself) when there's a
+breaking API change - the next automated release then builds on top of whatever the latest tag is.
 
 Both `cd-*` workflows deploy the same Railway service (`expensapp-api`) but to different Railway *environments*
 (`dev` vs. production) — each needs its own environment-scoped `RAILWAY_TOKEN_DEV`/`RAILWAY_TOKEN` secret, since
