@@ -33,13 +33,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Create .env file
-        run: |
-          echo "PROFILE=dev" >> .env
-          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY_DEV }}" >> .env
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_DEV }}" >> .env
-          echo "DECRYPT_KEY=${{ secrets.DECRYPT_KEY }}" >> .env
-
       - name: Set short SHA
         id: sha
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -52,8 +45,6 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:beta
             ${{ secrets.DOCKER_HUB_USERNAME }}/expensapp-api:beta-${{ steps.sha.outputs.short_sha }}
-          build-args: |
-            PROFILE=dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
