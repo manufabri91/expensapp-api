@@ -1,5 +1,7 @@
 package com.manuelfabri.expenses.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class FirebaseAuthorizationFilter extends OncePerRequestFilter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(FirebaseAuthorizationFilter.class);
   private static final String HEADER_NAME = "Authorization";
 
   private FirebaseService firebaseService;
@@ -40,8 +43,9 @@ public class FirebaseAuthorizationFilter extends OncePerRequestFilter {
     String xAuth = request.getHeader(HEADER_NAME);
     String requestURI = request.getRequestURI();
 
-    // Bypass /auth URLs
-    if (requestURI.startsWith(Urls.AUTH)) {
+    // Bypass /auth and springdoc's OpenAPI/Swagger UI URLs
+    if (requestURI.startsWith(Urls.AUTH) || requestURI.startsWith(Urls.API_DOCS)
+        || requestURI.startsWith(Urls.SWAGGER_UI)) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -68,7 +72,9 @@ public class FirebaseAuthorizationFilter extends OncePerRequestFilter {
       return;
     } catch (Exception e) {
       SecurityContextHolder.clearContext();
-      throw new ServletException(e.getMessage());
+      LOGGER.error("Unexpected error while authorizing request", e);
+      writeErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
+      return;
     }
 
   }
