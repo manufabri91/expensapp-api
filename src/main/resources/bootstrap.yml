@@ -3,5 +3,15 @@ spring:
     config:
       uri:
         - https://configserver.manuelfabri.com/
+      # Previously, a transient config-server blip meant the client logged a warning and continued
+      # booting on local-only defaults (fail-fast's actual default) - silently missing every
+      # per-environment override. fail-fast=true + retry (below) make that failure loud and retried
+      # instead of silent.
+      fail-fast: true
+      retry:
+        max-attempts: 6
+        initial-interval: 1000
+        multiplier: 1.1
+        max-interval: 2000
 encrypt:
   key: ${DECRYPT_KEY}

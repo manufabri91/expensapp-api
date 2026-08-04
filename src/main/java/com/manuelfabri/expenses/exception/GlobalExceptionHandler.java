@@ -1,6 +1,8 @@
 package com.manuelfabri.expenses.exception;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import com.manuelfabri.expenses.dto.ErrorResponseDto;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   @ExceptionHandler(ResourceNotFoundException.class)
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
@@ -54,6 +58,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       HttpStatusCode status, WebRequest request) {
     return buildErrorResponse(ex, "Validation error. Check 'errors' field for details.",
         HttpStatus.UNPROCESSABLE_ENTITY, request, ex.getBindingResult().getFieldErrors());
+  }
+
+  /**
+   * Catch-all for any exception type not handled above. Without this, an unmapped exception falls
+   * through to Spring's default BasicErrorController - a different response shape than every other
+   * error in this API, and never logged.
+   */
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<Object> handleUnexpectedException(Exception ex, WebRequest request) {
+    LOGGER.error("Unhandled exception", ex);
+    return buildErrorResponse(ex, "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR, request, null);
   }
 
   /**

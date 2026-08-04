@@ -13,4 +13,8 @@ public final class Urls {
   public static final String SUBCATEGORY = "/subcategory";
   public static final String SUMMARY = "/summary";
   public static final String RECURRENT_TRANSACTION = "/recurrent-transaction";
+
+  // springdoc-openapi's default paths
+  public static final String API_DOCS = "/v3/api-docs";
+  public static final String SWAGGER_UI = "/swagger-ui";
 }

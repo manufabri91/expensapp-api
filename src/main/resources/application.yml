@@ -7,26 +7,27 @@ spring:
     name: expensapp
   # JPA Properties
   jpa:
+    # Liquibase (below) owns all schema changes; Hibernate only verifies the entities match what
+    # Liquibase already migrated. This was previously set as spring.jpa.properties.hibernate.ddl-auto,
+    # which Hibernate does not recognize (its native key is hibernate.hbm2ddl.auto) - so it was a no-op
+    # and the app was silently running on Spring Boot's implicit default the whole time.
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        # Hibernate ddl auto (create, create-drop, validate, update)
-        # CREATE: Cada vez que se inicia la app, crea la tabla
-        # CREATE-DROP: Cada vez que se inicia la app, crea la tabla y cuando se detiene la borra
-        # VALIDATE: A revisar.
-        # UPDATE: Crea la tabla si no existe, pero si existe la actualiza
-        ddl-auto: update
         naming:
           physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
           implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+  # Was previously nested under server.liquibase, which Spring Boot does not bind (correct prefix is
+  # spring.liquibase) - another no-op that happened to match Liquibase's own defaults.
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
 
 server:
   tomcat:
     max-threads: 50
-
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-    enabled: true
   # security:
   #   oauth2:
   #     resourceserver:
@@ -35,3 +36,18 @@ server:
 firebase:
   admin-sdk-path: ${GOOGLE_APPLICATION_CREDENTIALS}
   api-key: ${FIREBASE_API_KEY}
+
+# Explicit rather than relying on Spring Boot's implicit default (also health+info, but undocumented
+# here); SecurityConfig's actuatorSecurityFilterChain permits these two publicly for infra health checks.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    com.manuelfabri.expenses: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

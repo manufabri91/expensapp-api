@@ -3,8 +3,12 @@ package com.manuelfabri.expenses.config;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -52,13 +56,31 @@ public class SecurityConfig {
     return source;
   }
 
+  /**
+   * Actuator gets its own chain, evaluated before {@link #filterChain}, so infra health checks
+   * (Railway, load balancers) never need a Firebase token. Only health/info are exposed at all (see
+   * management.endpoints.web.exposure.include); any other actuator endpoint added later still falls
+   * back to requiring an authenticated user, same as the rest of the app.
+   */
   @Bean
+  @Order(1)
+  SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.securityMatcher(EndpointRequest.toAnyEndpoint()).csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests((authz) -> authz.requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class))
+            .permitAll().anyRequest().authenticated());
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     String authRouteMatcher = Urls.AUTH + "/**";
+    String apiDocsRouteMatcher = Urls.API_DOCS + "/**";
+    String swaggerUiRouteMatcher = Urls.SWAGGER_UI + "/**";
 
     return http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .authorizeHttpRequests(
-            (authz) -> authz.requestMatchers(authRouteMatcher).permitAll().anyRequest().authenticated())
+        .authorizeHttpRequests((authz) -> authz.requestMatchers(authRouteMatcher, apiDocsRouteMatcher, swaggerUiRouteMatcher)
+            .permitAll().anyRequest().authenticated())
         .addFilterBefore(new FirebaseAuthorizationFilter(userService, firebaseService),
             UsernamePasswordAuthenticationFilter.class)
         .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build();
