@@ -394,4 +394,70 @@ class UpcomingTransactionServiceImplementationTest {
 
     assertThat(result.getExpenses()).isEmpty();
   }
+
+  // ---------------------------------------------------------------------
+  // getProgrammedTransactions: ended recurrences (ACTIVE/PAUSED, no more due dates) are still included
+  // ---------------------------------------------------------------------
+
+  @Test
+  void getProgrammedTransactions_includesEndedActiveRecurrence_withNullDate() {
+    RecurrentTransaction endedActive = recurrence(1L, TransactionTypeEnum.EXPENSE, new BigDecimal("30.00"),
+        usdAccount, expenseCategory, RecurrenceStatusEnum.ACTIVE);
+    when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(endedActive));
+    when(dateCalculator.nextDueDate(endedActive)).thenReturn(Optional.empty());
+    when(transactionRepository.findByOwnerAndPendingTrueAndDeletedFalse(currentUser)).thenReturn(List.of());
+
+    ProgrammedTransactionsDto result = service.getProgrammedTransactions();
+
+    assertThat(result.getExpenses()).hasSize(1);
+    assertThat(result.getExpenses().get(0).getSourceId()).isEqualTo(1L);
+    assertThat(result.getExpenses().get(0).getDate()).isNull();
+  }
+
+  @Test
+  void getProgrammedTransactions_includesEndedPausedRecurrence_withNullDate() {
+    RecurrentTransaction endedPaused = recurrence(1L, TransactionTypeEnum.EXPENSE, new BigDecimal("30.00"),
+        usdAccount, expenseCategory, RecurrenceStatusEnum.PAUSED);
+    when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(endedPaused));
+    when(dateCalculator.nextDueDate(endedPaused)).thenReturn(Optional.empty());
+    when(transactionRepository.findByOwnerAndPendingTrueAndDeletedFalse(currentUser)).thenReturn(List.of());
+
+    ProgrammedTransactionsDto result = service.getProgrammedTransactions();
+
+    assertThat(result.getExpenses()).hasSize(1);
+    assertThat(result.getExpenses().get(0).getSourceId()).isEqualTo(1L);
+    assertThat(result.getExpenses().get(0).getDate()).isNull();
+  }
+
+  @Test
+  void getUpcomingTransactions_stillExcludesEndedRecurrence_regressionForBoundedDashboardView() {
+    RecurrentTransaction ended = recurrence(1L, TransactionTypeEnum.EXPENSE, new BigDecimal("30.00"), usdAccount,
+        expenseCategory, RecurrenceStatusEnum.ACTIVE);
+    when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(ended));
+    when(dateCalculator.nextDueDate(ended)).thenReturn(Optional.empty());
+    stubNoOneTimeTransactions();
+
+    UpcomingTransactionsResponseDto result = service.getUpcomingTransactions();
+
+    assertThat(result.getExpenses()).isEmpty();
+  }
+
+  @Test
+  void getProgrammedTransactions_sortsNullDatedEndedRecurrences_last() {
+    RecurrentTransaction dated = recurrence(1L, TransactionTypeEnum.EXPENSE, new BigDecimal("10.00"), usdAccount,
+        expenseCategory, RecurrenceStatusEnum.ACTIVE);
+    RecurrentTransaction ended = recurrence(2L, TransactionTypeEnum.EXPENSE, new BigDecimal("20.00"), usdAccount,
+        expenseCategory, RecurrenceStatusEnum.ACTIVE);
+    // Repository order deliberately puts the ended (null-date) recurrence before the dated one, so the assertion
+    // proves the sort — not incidental insertion order — puts it last.
+    when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(ended, dated));
+    when(dateCalculator.nextDueDate(ended)).thenReturn(Optional.empty());
+    when(dateCalculator.nextDueDate(dated)).thenReturn(Optional.of(today.plusDays(5)));
+    when(transactionRepository.findByOwnerAndPendingTrueAndDeletedFalse(currentUser)).thenReturn(List.of());
+
+    ProgrammedTransactionsDto result = service.getProgrammedTransactions();
+
+    assertThat(result.getExpenses()).extracting(UpcomingTransactionItemDto::getSourceId).containsExactly(1L, 2L);
+    assertThat(result.getExpenses().get(1).getDate()).isNull();
+  }
 }

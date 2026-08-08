@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,11 +46,11 @@ public class UpcomingTransactionServiceImplementation implements UpcomingTransac
     this.mapper = mapper;
   }
 
-  private UpcomingTransactionItemDto fromRecurrence(RecurrentTransaction recurrence, LocalDate dueDate) {
+  private UpcomingTransactionItemDto fromRecurrence(RecurrentTransaction recurrence, Optional<LocalDate> dueDate) {
     UpcomingTransactionItemDto dto = new UpcomingTransactionItemDto();
     dto.setSourceType(SourceTypeEnum.RECURRING);
     dto.setSourceId(recurrence.getId());
-    dto.setDate(dueDate.atStartOfDay().atOffset(recurrence.getStartDate().getOffset()));
+    dto.setDate(dueDate.map(date -> date.atStartOfDay().atOffset(recurrence.getStartDate().getOffset())).orElse(null));
     dto.setDescription(recurrence.getDescription());
     dto.setCategoryIconName(recurrence.getCategory().getIconName());
     dto.setCategoryColor(recurrence.getCategory().getColor());
@@ -140,7 +141,7 @@ public class UpcomingTransactionServiceImplementation implements UpcomingTransac
       }
       dateCalculator.nextDueDate(recurrence)
           .filter(dueDate -> !dueDate.isBefore(today) && !dueDate.isAfter(endOfMonth)).ifPresent(dueDate -> {
-            UpcomingTransactionItemDto dto = fromRecurrence(recurrence, dueDate);
+            UpcomingTransactionItemDto dto = fromRecurrence(recurrence, Optional.of(dueDate));
             CurrencyEnum currency = recurrence.getAccount().getCurrency();
             bucketByCurrency(recurrence.getType(), currency, dto, expensesByCurrency, incomesByCurrency);
           });
@@ -172,16 +173,16 @@ public class UpcomingTransactionServiceImplementation implements UpcomingTransac
       if (!isActiveOrPaused) {
         continue;
       }
-      dateCalculator.nextDueDate(recurrence)
-          .ifPresent(dueDate -> bucket(recurrence.getType(), fromRecurrence(recurrence, dueDate), expenses, incomes));
+      Optional<LocalDate> dueDate = dateCalculator.nextDueDate(recurrence);
+      bucket(recurrence.getType(), fromRecurrence(recurrence, dueDate), expenses, incomes);
     }
 
     for (Transaction transaction : transactionRepository.findByOwnerAndPendingTrueAndDeletedFalse(user)) {
       bucket(transaction.getType(), fromTransaction(transaction), expenses, incomes);
     }
 
-    expenses.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate));
-    incomes.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate));
+    expenses.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate, Comparator.nullsLast(Comparator.naturalOrder())));
+    incomes.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate, Comparator.nullsLast(Comparator.naturalOrder())));
 
     ProgrammedTransactionsDto response = new ProgrammedTransactionsDto();
     response.setExpenses(expenses);
