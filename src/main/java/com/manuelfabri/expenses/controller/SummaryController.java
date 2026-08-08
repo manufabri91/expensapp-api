@@ -14,19 +14,25 @@ import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.BalanceSummaryDto;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
 import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
+import com.manuelfabri.expenses.dto.ProgrammedTransactionsDto;
+import com.manuelfabri.expenses.dto.UpcomingTransactionsResponseDto;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.service.SummaryService;
 import com.manuelfabri.expenses.service.TransactionStatisticsService;
+import com.manuelfabri.expenses.service.UpcomingTransactionService;
 
 @RestController
 @RequestMapping(Urls.SUMMARY)
 public class SummaryController {
   private SummaryService summaryService;
   private TransactionStatisticsService transactionStatisticsService;
+  private UpcomingTransactionService upcomingTransactionService;
 
-  public SummaryController(SummaryService summaryService, TransactionStatisticsService transactionStatisticsService) {
+  public SummaryController(SummaryService summaryService, TransactionStatisticsService transactionStatisticsService,
+      UpcomingTransactionService upcomingTransactionService) {
     this.summaryService = summaryService;
     this.transactionStatisticsService = transactionStatisticsService;
+    this.upcomingTransactionService = upcomingTransactionService;
   }
 
   @GetMapping
@@ -86,6 +92,16 @@ public class SummaryController {
   @GetMapping("/monthly-history/{months}")
   public ResponseEntity<List<MonthlyBalanceSummaryDto>> getMonthlyHistory(@PathVariable int months) {
     return new ResponseEntity<>(transactionStatisticsService.getMonthlyHistory(months), HttpStatus.OK);
+  }
+
+  @GetMapping("/upcoming-transactions")
+  public ResponseEntity<UpcomingTransactionsResponseDto> getUpcomingTransactions() {
+    return new ResponseEntity<>(upcomingTransactionService.getUpcomingTransactions(), HttpStatus.OK);
+  }
+
+  @GetMapping("/programmed-transactions")
+  public ResponseEntity<ProgrammedTransactionsDto> getProgrammedTransactions() {
+    return new ResponseEntity<>(upcomingTransactionService.getProgrammedTransactions(), HttpStatus.OK);
   }
 
 }
