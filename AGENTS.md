@@ -130,3 +130,9 @@
   a PR, not just in CI. No `package.json`/npm involved — it's a plain script, activated once per clone via
   `git config core.hooksPath .githooks` (see the README's Getting Started section). Node.js is only needed to run
   the script itself.
+- Passing the 80% gate is not the goal — 100% line coverage on new/changed files is. The pre-push hook and Codecov
+  both only fail below 80%, so it's easy to open a PR that's "green" while still leaving boilerplate uncovered
+  (a no-arg constructor, a setter, a controller method, an `if` branch only ever exercised one way). Before pushing,
+  check `target/site/jacoco/jacoco.xml` (or the Codecov PR comment once it posts) for the files you touched and add
+  the missing case rather than accepting the gap — see the `feat/persist-user-settings` PRs
+  (expensapp-api#40 / expensapp-web#26) for an example of closing exactly this kind of gap after the fact.

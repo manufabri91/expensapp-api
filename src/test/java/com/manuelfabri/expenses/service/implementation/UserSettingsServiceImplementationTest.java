@@ -113,4 +113,21 @@ class UserSettingsServiceImplementationTest {
     assertThat(result.getLocale()).isEqualTo("en");
   }
 
+  @Test
+  void updateSettingsWithOnlyLocaleProvided_leavesThePersistedThemeUnchanged() {
+    UserSettings existing = new UserSettings("owner-1");
+    existing.setTheme(ThemeEnum.LIGHT);
+    existing.setLocale("en");
+    when(userSettingsRepository.findById("owner-1")).thenReturn(Optional.of(existing));
+    when(userSettingsRepository.save(any(UserSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    UserSettingsRequestDto request = new UserSettingsRequestDto();
+    request.setLocale("es-AR");
+
+    UserSettingsDto result = service.updateSettings(request);
+
+    assertThat(result.getTheme()).isEqualTo(ThemeEnum.LIGHT);
+    assertThat(result.getLocale()).isEqualTo("es-AR");
+  }
+
 }
