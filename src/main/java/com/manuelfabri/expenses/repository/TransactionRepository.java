@@ -81,4 +81,10 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
   List<Object[]> getTransactionsTotalExpensesByMonth(@Param("fromDate") OffsetDateTime fromDate);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND (t.excludeFromTotals = false OR t.pending = true) AND t.amount > 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalIncomesByMonthIncludingPending(@Param("fromDate") OffsetDateTime fromDate);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND (t.excludeFromTotals = false OR t.pending = true) AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalExpensesByMonthIncludingPending(@Param("fromDate") OffsetDateTime fromDate);
 }

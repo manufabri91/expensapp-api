@@ -69,10 +69,15 @@ class TransactionRepositoryTest {
   }
 
   private Transaction persistTransaction(OffsetDateTime eventDate, boolean pending, boolean excludeFromTotals) {
+    return persistTransaction(eventDate, pending, excludeFromTotals, new BigDecimal("-10.00"), false);
+  }
+
+  private Transaction persistTransaction(OffsetDateTime eventDate, boolean pending, boolean excludeFromTotals,
+      BigDecimal amount, boolean deleted) {
     Transaction transaction = new Transaction();
     transaction.setOwner(owner);
-    transaction.setType(TransactionTypeEnum.EXPENSE);
-    transaction.setAmount(new BigDecimal("-10.00"));
+    transaction.setType(amount.signum() >= 0 ? TransactionTypeEnum.INCOME : TransactionTypeEnum.EXPENSE);
+    transaction.setAmount(amount);
     transaction.setDescription("Test transaction");
     transaction.setEventDate(eventDate);
     transaction.setAccount(account);
@@ -80,7 +85,12 @@ class TransactionRepositoryTest {
     transaction.setSubcategory(subcategory);
     transaction.setPending(pending);
     transaction.setExcludeFromTotals(excludeFromTotals);
-    return entityManager.persistAndFlush(transaction);
+    Transaction persisted = entityManager.persistAndFlush(transaction);
+    if (deleted) {
+      transactionRepository.softDeleteById(persisted.getId());
+      entityManager.flush();
+    }
+    return persisted;
   }
 
   private Object[] currentPendingState(Long transactionId) {
@@ -185,5 +195,77 @@ class TransactionRepositoryTest {
 
     assertThat(result).extracting(Transaction::getId).containsExactlyInAnyOrder(pendingPast.getId(),
         pendingFuture.getId());
+  }
+
+  // --- getTransactionsTotalIncomesByMonth(IncludingPending) / getTransactionsTotalExpensesByMonth(IncludingPending) --
+
+  @Test
+  void getTransactionsTotalIncomesByMonthIncludingPending_includesAPendingTransactionThatTheExistingMethodExcludes() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("100.00"),
+        false);
+
+    List<Object[]> existingResult = transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
+    List<Object[]> includingPendingResult =
+        transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate);
+
+    assertThat(existingResult).isEmpty();
+    assertThat(includingPendingResult).hasSize(1);
+    assertThat((BigDecimal) includingPendingResult.get(0)[3]).isEqualByComparingTo("100.00");
+  }
+
+  @Test
+  void getTransactionsTotalExpensesByMonthIncludingPending_includesAPendingTransactionThatTheExistingMethodExcludes() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("-50.00"),
+        false);
+
+    List<Object[]> existingResult = transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    List<Object[]> includingPendingResult =
+        transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate);
+
+    assertThat(existingResult).isEmpty();
+    assertThat(includingPendingResult).hasSize(1);
+    assertThat((BigDecimal) includingPendingResult.get(0)[3]).isEqualByComparingTo("-50.00");
+  }
+
+  @Test
+  void getTransactionsTotalIncomesByMonthAndIncludingPendingVariant_bothExcludeATransferLeg() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, true, new BigDecimal("75.00"),
+        false); // transfer leg: excludeFromTotals=true, pending=false
+
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonth(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)).isEmpty();
+  }
+
+  @Test
+  void getTransactionsTotalExpensesByMonthAndIncludingPendingVariant_bothExcludeATransferLeg() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, true, new BigDecimal("-75.00"),
+        false); // transfer leg: excludeFromTotals=true, pending=false
+
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonth(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)).isEmpty();
+  }
+
+  @Test
+  void getTransactionsTotalIncomesByMonthAndIncludingPendingVariant_bothExcludeADeletedTransaction() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, false, new BigDecimal("60.00"),
+        true); // deleted, would otherwise be a normal counted income
+
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonth(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)).isEmpty();
+  }
+
+  @Test
+  void getTransactionsTotalExpensesByMonthAndIncludingPendingVariant_bothExcludeADeletedTransaction() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, false, new BigDecimal("-60.00"),
+        true); // deleted, would otherwise be a normal counted expense
+
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonth(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)).isEmpty();
   }
 }

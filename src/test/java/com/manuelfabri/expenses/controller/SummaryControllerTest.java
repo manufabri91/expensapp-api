@@ -1,5 +1,6 @@
 package com.manuelfabri.expenses.controller;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import com.manuelfabri.expenses.dto.BalanceSummaryDto;
+import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.dto.ProgrammedTransactionsDto;
 import com.manuelfabri.expenses.dto.UpcomingTransactionGroupDto;
 import com.manuelfabri.expenses.dto.UpcomingTransactionItemDto;
@@ -87,5 +89,27 @@ class SummaryControllerTest {
         .andExpect(jsonPath("$.expenses[0].sourceId").value(5))
         .andExpect(jsonPath("$.expenses[0].sourceType").value("ONE_TIME"))
         .andExpect(jsonPath("$.incomes.length()").value(0));
+  }
+
+  @Test
+  void getMonthlyHistory_withIncludePendingTrue_passesTheFlagThroughToTheService() throws Exception {
+    MonthlyBalanceSummaryDto dto = new MonthlyBalanceSummaryDto();
+    when(transactionStatisticsService.getMonthlyHistory(6, true)).thenReturn(List.of(dto));
+
+    mockMvc.perform(get("/summary/monthly-history/6").param("includePending", "true")).andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1));
+
+    verify(transactionStatisticsService).getMonthlyHistory(6, true);
+  }
+
+  @Test
+  void getMonthlyHistory_withoutIncludePendingParam_defaultsToFalse() throws Exception {
+    MonthlyBalanceSummaryDto dto = new MonthlyBalanceSummaryDto();
+    when(transactionStatisticsService.getMonthlyHistory(6, false)).thenReturn(List.of(dto));
+
+    mockMvc.perform(get("/summary/monthly-history/6")).andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1));
+
+    verify(transactionStatisticsService).getMonthlyHistory(6, false);
   }
 }

@@ -179,10 +179,25 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
 
   @Override
   public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months) {
-    OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
-    List<Object[]> incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
-    List<Object[]> expenseResults = this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    return getMonthlyHistory(months, false);
+  }
 
+  @Override
+  public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months, boolean includePending) {
+    OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+
+    List<Object[]> incomeResults = includePending
+        ? this.transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)
+        : this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
+    List<Object[]> expenseResults = includePending
+        ? this.transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)
+        : this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+
+    return buildMonthlyBalances(incomeResults, expenseResults);
+  }
+
+  private List<MonthlyBalanceSummaryDto> buildMonthlyBalances(List<Object[]> incomeResults,
+      List<Object[]> expenseResults) {
     Map<String, MonthlyBalanceSummaryDto> monthlyBalancesByKey = new HashMap<>();
 
     incomeResults.forEach(row -> {

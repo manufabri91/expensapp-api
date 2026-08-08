@@ -90,8 +90,10 @@ public class SummaryController {
   }
 
   @GetMapping("/monthly-history/{months}")
-  public ResponseEntity<List<MonthlyBalanceSummaryDto>> getMonthlyHistory(@PathVariable int months) {
-    return new ResponseEntity<>(transactionStatisticsService.getMonthlyHistory(months), HttpStatus.OK);
+  public ResponseEntity<List<MonthlyBalanceSummaryDto>> getMonthlyHistory(@PathVariable int months,
+      @RequestParam(defaultValue = "false") boolean includePending) {
+    return new ResponseEntity<>(transactionStatisticsService.getMonthlyHistory(months, includePending),
+        HttpStatus.OK);
   }
 
   @GetMapping("/upcoming-transactions")
