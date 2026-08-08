@@ -42,6 +42,8 @@ public class Transaction extends BaseEntity {
   private Subcategory subcategory;
   @Column(nullable = false)
   private boolean excludeFromTotals = false;
+  @Column(nullable = false)
+  private boolean pending = false;
 
   // CONSTRUCTORS
   public Transaction() {}
@@ -142,5 +144,13 @@ public class Transaction extends BaseEntity {
 
   public void setExcludeFromTotals(boolean excludeFromTotals) {
     this.excludeFromTotals = excludeFromTotals;
+  }
+
+  public boolean getPending() {
+    return pending;
+  }
+
+  public void setPending(boolean pending) {
+    this.pending = pending;
   }
 }

@@ -32,4 +32,5 @@ public class TransactionDto {
   private SubcategoryDto subcategory;
   private LinkedTransactionDTO linkedTransaction;
   private boolean excludeFromTotals = false;
+  private boolean pending = false;
 }

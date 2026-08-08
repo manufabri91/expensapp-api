@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-add-pending-to-transactions
+      author: manufabri91
+      changes:
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: pending
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

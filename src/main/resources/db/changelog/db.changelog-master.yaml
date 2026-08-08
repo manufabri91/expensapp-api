@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/8-add-recurrent-transactions.yaml
   - include:
       file: db/changelog/9-add-user-settings.yaml
+  - include:
+      file: db/changelog/10-add-pending-to-transactions.yaml

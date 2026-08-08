@@ -2,8 +2,10 @@ package com.manuelfabri.expenses.repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.Category;
 import com.manuelfabri.expenses.model.Subcategory;
@@ -21,6 +23,19 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   List<Transaction> findByOwnerAndEventDateBetweenAndDeletedFalse(User user, OffsetDateTime dateStart,
       OffsetDateTime dateEnd);
+
+  List<Transaction> findByOwnerAndEventDateBetweenAndPendingFalseAndDeletedFalse(User owner,
+      OffsetDateTime dateStart, OffsetDateTime dateEnd);
+
+  List<Transaction> findByOwnerAndPendingTrueAndEventDateBetweenAndDeletedFalse(User owner, OffsetDateTime dateStart,
+      OffsetDateTime dateEnd);
+
+  List<Transaction> findByOwnerAndPendingTrueAndDeletedFalse(User owner);
+
+  @Modifying
+  @Transactional
+  @Query("update #{#entityName} t set t.pending = false, t.excludeFromTotals = false where t.pending = true and t.eventDate <= ?1")
+  void activateDuePendingTransactions(OffsetDateTime asOf);
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getTransactionsTotalIncomes();
