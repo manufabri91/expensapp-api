@@ -18,6 +18,10 @@ public interface TransactionService {
 
   void deleteTransaction(Long id);
 
+  TransactionDto confirm(Long id);
+
+  List<TransactionDto> getPendingTransactions();
+
   Page<TransactionDto> getPagedTransactions(TransactionTypeEnum type, List<Long> categoryIds,
       List<Long> subcategoryIds, List<Long> accountIds, BigDecimal minAmount, BigDecimal maxAmount,
       OffsetDateTime fromDate, OffsetDateTime toDate, Pageable pageable);

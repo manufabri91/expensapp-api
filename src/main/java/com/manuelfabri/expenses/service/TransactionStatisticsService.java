@@ -34,4 +34,6 @@ public interface TransactionStatisticsService {
   List<CategoryTotalsDto> getTotalsPerCategory(int year, int month);
 
   List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months);
+
+  List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months, boolean includePending);
 }

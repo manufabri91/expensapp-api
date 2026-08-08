@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9-1-create-usersettings-table
+      author: manufabri91
+      comment: "Create user settings table"
+      changes:
+        - createTable:
+            tableName: usersettings
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: userid
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: theme
+                  type: VARCHAR(20)
+                  defaultValue: SYSTEM
+              - column:
+                  constraints:
+                    nullable: false
+                  name: locale
+                  type: VARCHAR(10)
+                  defaultValue: en
+
+  - changeSet:
+      id: 9-2-create-usersettings-fk
+      author: manufabri91
+      comment: "Create FK for user settings"
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: userid
+            baseTableName: usersettings
+            constraintName: FK_usersettings_user
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: id
+            referencedTableName: users
+            validate: true

@@ -2,8 +2,10 @@ package com.manuelfabri.expenses.repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.Category;
 import com.manuelfabri.expenses.model.Subcategory;
@@ -19,8 +21,18 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   List<Transaction> findByOwnerAndSubcategoryAndDeletedFalse(User user, Subcategory subcategory);
 
-  List<Transaction> findByOwnerAndEventDateBetweenAndDeletedFalse(User user, OffsetDateTime dateStart,
+  List<Transaction> findByOwnerAndEventDateBetweenAndPendingFalseAndDeletedFalse(User owner,
+      OffsetDateTime dateStart, OffsetDateTime dateEnd);
+
+  List<Transaction> findByOwnerAndPendingTrueAndEventDateBetweenAndDeletedFalse(User owner, OffsetDateTime dateStart,
       OffsetDateTime dateEnd);
+
+  List<Transaction> findByOwnerAndPendingTrueAndDeletedFalse(User owner);
+
+  @Modifying
+  @Transactional
+  @Query("update #{#entityName} t set t.pending = false, t.excludeFromTotals = false where t.pending = true and t.eventDate <= ?1 and t.deleted = false")
+  void activateDuePendingTransactions(OffsetDateTime asOf);
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getTransactionsTotalIncomes();
@@ -39,9 +51,6 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getTransactionsTotalExpenses(@Param("year") int year, @Param("month") int month);
-
-  @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
-  List<Object[]> getBalancesByCurrency();
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getBalancesByCurrency(@Param("year") int year);
@@ -72,4 +81,12 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
   List<Object[]> getTransactionsTotalExpensesByMonth(@Param("fromDate") OffsetDateTime fromDate);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND (t.excludeFromTotals = false OR t.pending = true) AND t.amount > 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate AND t.eventDate <= :toDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalIncomesByMonthIncludingPending(@Param("fromDate") OffsetDateTime fromDate,
+      @Param("toDate") OffsetDateTime toDate);
+
+  @Query("SELECT EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND (t.excludeFromTotals = false OR t.pending = true) AND t.amount < 0 AND t.owner.id = ?#{ principal?.id } AND t.eventDate >= :fromDate AND t.eventDate <= :toDate GROUP BY EXTRACT(YEAR FROM t.eventDate), EXTRACT(MONTH FROM t.eventDate), t.account.currency")
+  List<Object[]> getTransactionsTotalExpensesByMonthIncludingPending(@Param("fromDate") OffsetDateTime fromDate,
+      @Param("toDate") OffsetDateTime toDate);
 }

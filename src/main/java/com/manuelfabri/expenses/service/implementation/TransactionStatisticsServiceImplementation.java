@@ -1,8 +1,10 @@
 package com.manuelfabri.expenses.service.implementation;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,16 +14,21 @@ import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
 import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.dto.SubTotalsPerSubcategoryDto;
+import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.CurrencyEnum;
+import com.manuelfabri.expenses.repository.AccountRepository;
 import com.manuelfabri.expenses.repository.TransactionRepository;
 import com.manuelfabri.expenses.service.TransactionStatisticsService;
 
 @Service
 public class TransactionStatisticsServiceImplementation implements TransactionStatisticsService {
   private TransactionRepository transactionRepository;
+  private AccountRepository accountRepository;
 
-  public TransactionStatisticsServiceImplementation(TransactionRepository transactionRepository) {
+  public TransactionStatisticsServiceImplementation(TransactionRepository transactionRepository,
+      AccountRepository accountRepository) {
     this.transactionRepository = transactionRepository;
+    this.accountRepository = accountRepository;
   }
 
   private Map<CurrencyEnum, BigDecimal> parseTotalsByCurrency(List<Object[]> results) {
@@ -133,8 +140,8 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
 
   @Override
   public Map<CurrencyEnum, BigDecimal> getBalancesByCurrency() {
-    List<Object[]> results = this.transactionRepository.getBalancesByCurrency();
-    return parseTotalsByCurrency(results);
+    return this.accountRepository.findActive().stream().collect(Collectors.groupingBy(Account::getCurrency,
+        Collectors.reducing(BigDecimal.ZERO, Account::getAccountBalance, BigDecimal::add)));
   }
 
   @Override
@@ -174,10 +181,31 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
 
   @Override
   public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months) {
-    OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
-    List<Object[]> incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
-    List<Object[]> expenseResults = this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    return getMonthlyHistory(months, false);
+  }
 
+  @Override
+  public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months, boolean includePending) {
+    OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+
+    List<Object[]> incomeResults;
+    List<Object[]> expenseResults;
+    if (includePending) {
+      OffsetDateTime toDate =
+          OffsetDateTime.now().with(TemporalAdjusters.lastDayOfMonth()).with(LocalTime.MAX);
+      incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate);
+      expenseResults =
+          this.transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate);
+    } else {
+      incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
+      expenseResults = this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    }
+
+    return buildMonthlyBalances(incomeResults, expenseResults);
+  }
+
+  private List<MonthlyBalanceSummaryDto> buildMonthlyBalances(List<Object[]> incomeResults,
+      List<Object[]> expenseResults) {
     Map<String, MonthlyBalanceSummaryDto> monthlyBalancesByKey = new HashMap<>();
 
     incomeResults.forEach(row -> {
