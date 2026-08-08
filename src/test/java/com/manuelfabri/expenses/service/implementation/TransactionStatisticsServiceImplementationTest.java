@@ -8,9 +8,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,9 +23,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.CurrencyEnum;
+import com.manuelfabri.expenses.model.RecurrenceFrequencyEnum;
+import com.manuelfabri.expenses.model.RecurrenceStatusEnum;
+import com.manuelfabri.expenses.model.RecurrentTransaction;
+import com.manuelfabri.expenses.model.TransactionTypeEnum;
 import com.manuelfabri.expenses.model.User;
 import com.manuelfabri.expenses.repository.AccountRepository;
+import com.manuelfabri.expenses.repository.RecurrentTransactionRepository;
 import com.manuelfabri.expenses.repository.TransactionRepository;
+import com.manuelfabri.expenses.service.RecurrenceDateCalculator;
 
 /**
  * Focused on {@code getBalancesByCurrency()} and its two overloads. The no-arg overload was rewritten to sum each
@@ -38,12 +48,17 @@ class TransactionStatisticsServiceImplementationTest {
   private TransactionRepository transactionRepository;
   @Mock
   private AccountRepository accountRepository;
+  @Mock
+  private RecurrentTransactionRepository recurrentTransactionRepository;
+  @Mock
+  private RecurrenceDateCalculator dateCalculator;
 
   private TransactionStatisticsServiceImplementation service;
   private User owner;
 
   private void createService() {
-    service = new TransactionStatisticsServiceImplementation(transactionRepository, accountRepository);
+    service = new TransactionStatisticsServiceImplementation(transactionRepository, accountRepository,
+        recurrentTransactionRepository, dateCalculator);
   }
 
   private Account account(Long id, CurrencyEnum currency, String accountBalance) {
@@ -238,5 +253,36 @@ class TransactionStatisticsServiceImplementationTest {
     assertThat(result.get(0).getYear()).isEqualTo(now.getYear());
     assertThat(result.get(0).getMonth()).isEqualTo(now.getMonthValue());
     assertThat(result.stream().anyMatch(dto -> dto.getMonth() == laterMonth && dto.getYear() == laterYear)).isFalse();
+  }
+
+  @Test
+  void getMonthlyHistory_withIncludePendingTrue_includesAnActiveRecurringOccurrenceDueThisMonth() {
+    createService();
+    OffsetDateTime now = OffsetDateTime.now();
+    Account account = account(1L, CurrencyEnum.USD, "0.00");
+
+    RecurrentTransaction recurrence = new RecurrentTransaction();
+    recurrence.setId(5L);
+    recurrence.setType(TransactionTypeEnum.EXPENSE);
+    recurrence.setAmount(new BigDecimal("50.00"));
+    recurrence.setAccount(account);
+    recurrence.setFrequency(RecurrenceFrequencyEnum.INTERVAL_DAYS);
+    recurrence.setIntervalDays(30);
+    recurrence.setStartDate(now);
+    recurrence.setStatus(RecurrenceStatusEnum.ACTIVE);
+
+    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.of());
+    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.of());
+    when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(recurrence));
+    when(dateCalculator.nextDueDate(recurrence)).thenReturn(Optional.of(LocalDate.now(ZoneOffset.UTC)));
+
+    List<MonthlyBalanceSummaryDto> result = service.getMonthlyHistory(1, true);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getYear()).isEqualTo(now.getYear());
+    assertThat(result.get(0).getMonth()).isEqualTo(now.getMonthValue());
+    assertThat(result.get(0).getExpenses()).isEqualByComparingTo("-50.00");
   }
 }
