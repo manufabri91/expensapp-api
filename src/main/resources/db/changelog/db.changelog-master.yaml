@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/7-fix-enum-storage-to-string.yaml
   - include:
       file: db/changelog/8-add-recurrent-transactions.yaml
+  - include:
+      file: db/changelog/9-add-user-settings.yaml
