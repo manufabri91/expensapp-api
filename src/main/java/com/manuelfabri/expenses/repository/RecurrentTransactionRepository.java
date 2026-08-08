@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.manuelfabri.expenses.model.RecurrentTransaction;
+import com.manuelfabri.expenses.model.User;
 
 public interface RecurrentTransactionRepository extends BaseEntityRepository<RecurrentTransaction> {
   @Query("select r from #{#entityName} r where r.deleted = false and r.status = 'ACTIVE' "
@@ -14,4 +15,8 @@ public interface RecurrentTransactionRepository extends BaseEntityRepository<Rec
   @Query("select r from #{#entityName} r where r.deleted = false and r.status != 'CANCELLED' "
       + "and (r.owner.id = ?#{ principal?.id } or r.owner.id = 'system')")
   List<RecurrentTransaction> findActiveVisible();
+
+  List<RecurrentTransaction> findByOwnerAndDeletedFalse(User owner);
+
+  List<RecurrentTransaction> findByOwner(User owner);
 }

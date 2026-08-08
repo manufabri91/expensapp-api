@@ -20,4 +20,6 @@ public interface FirebaseService {
   public UserRecord createUserFromRequest(UserRegisterDto userRegisterData, Role startingRole);
 
   public FirebaseRefreshTokenResponseDto refreshToken(String refreshToken);
+
+  public void deleteUser(String uid);
 }

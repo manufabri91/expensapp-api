@@ -1,5 +1,6 @@
 package com.manuelfabri.expenses.model;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +29,11 @@ public class User {
   @Column(name = "lastname")
   private String lastName;
   private String email;
+
+  @Column(name = "termsacceptedat")
+  private OffsetDateTime termsAcceptedAt;
+  @Column(name = "termsversion", length = 50)
+  private String termsVersion;
 
   @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Transaction> transactions;
@@ -100,6 +106,22 @@ public class User {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public OffsetDateTime getTermsAcceptedAt() {
+    return termsAcceptedAt;
+  }
+
+  public void setTermsAcceptedAt(OffsetDateTime termsAcceptedAt) {
+    this.termsAcceptedAt = termsAcceptedAt;
+  }
+
+  public String getTermsVersion() {
+    return termsVersion;
+  }
+
+  public void setTermsVersion(String termsVersion) {
+    this.termsVersion = termsVersion;
   }
 
   public Collection<Role> getRoles() {
