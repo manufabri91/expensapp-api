@@ -21,9 +21,6 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   List<Transaction> findByOwnerAndSubcategoryAndDeletedFalse(User user, Subcategory subcategory);
 
-  List<Transaction> findByOwnerAndEventDateBetweenAndDeletedFalse(User user, OffsetDateTime dateStart,
-      OffsetDateTime dateEnd);
-
   List<Transaction> findByOwnerAndEventDateBetweenAndPendingFalseAndDeletedFalse(User owner,
       OffsetDateTime dateStart, OffsetDateTime dateEnd);
 

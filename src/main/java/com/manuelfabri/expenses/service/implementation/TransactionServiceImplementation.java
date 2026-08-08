@@ -166,6 +166,8 @@ public class TransactionServiceImplementation implements TransactionService {
       transaction.setDescription("TRANSFER.OUT.DESCRIPTION");
     }
     transaction.setAmount(amount);
+    transaction.setPending(transaction.getType() != TransactionTypeEnum.TRANSFER && transaction.getExcludeFromTotals()
+        && transaction.getEventDate().isAfter(OffsetDateTime.now()));
     transaction.setOwner(user);
     transaction.setAccount(transactionAccount);
     transaction.setCategory(transactionCategory);
@@ -194,7 +196,8 @@ public class TransactionServiceImplementation implements TransactionService {
         .and(TransactionSpecifications.hasSubcategoryIds(subcategoryIds))
         .and(TransactionSpecifications.hasAccountIds(accountIds))
         .and(TransactionSpecifications.hasMinAmount(minAmount)).and(TransactionSpecifications.hasMaxAmount(maxAmount))
-        .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate)),
+        .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate))
+        .and(TransactionSpecifications.isNotPending()),
         pageable).map(transaction -> mapper.map(transaction, TransactionDto.class));
   }
 
@@ -210,7 +213,7 @@ public class TransactionServiceImplementation implements TransactionService {
         .and(TransactionSpecifications.hasAccountIds(accountIds))
         .and(TransactionSpecifications.hasMinAmount(minAmount)).and(TransactionSpecifications.hasMaxAmount(maxAmount))
         .and(TransactionSpecifications.occurredAfter(fromDate)).and(TransactionSpecifications.occurredBefore(toDate))
-        .and(TransactionSpecifications.notExcludedFromTotals()));
+        .and(TransactionSpecifications.notExcludedFromTotals()).and(TransactionSpecifications.isNotPending()));
 
     Map<CurrencyEnum, BalanceSummaryDto> totalsByCurrency = new HashMap<>();
     for (Transaction transaction : transactions) {
@@ -282,6 +285,9 @@ public class TransactionServiceImplementation implements TransactionService {
     }
 
 
+    transaction.setPending(transaction.getType() != TransactionTypeEnum.TRANSFER && transaction.getExcludeFromTotals()
+        && transaction.getEventDate().isAfter(OffsetDateTime.now()));
+
     Transaction updatedTransaction = this.transactionRepository.save(transaction);
 
     if (idToDelete != null) {
@@ -289,6 +295,24 @@ public class TransactionServiceImplementation implements TransactionService {
     }
 
     return mapper.map(updatedTransaction, TransactionDto.class);
+  }
+
+  @Transactional
+  @Override
+  public TransactionDto confirm(Long id) {
+    Transaction transaction = this.transactionRepository.findActiveById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
+    transaction.setExcludeFromTotals(false);
+    transaction.setPending(false);
+    return mapper.map(this.transactionRepository.save(transaction), TransactionDto.class);
+  }
+
+  @Override
+  public List<TransactionDto> getPendingTransactions() {
+    Specification<Transaction> spec = Specification.where(BaseEntitySpecifications.<Transaction>activeForCurrentUser())
+        .and(TransactionSpecifications.isPending());
+    return transactionRepository.findAll(spec).stream()
+        .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
 
   @Transactional
@@ -344,7 +368,8 @@ public class TransactionServiceImplementation implements TransactionService {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     OffsetDateTime startDate = OffsetDateTime.of(year, month, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     OffsetDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
-    return this.transactionRepository.findByOwnerAndEventDateBetweenAndDeletedFalse(user, startDate, endDate).stream()
+    return this.transactionRepository
+        .findByOwnerAndEventDateBetweenAndPendingFalseAndDeletedFalse(user, startDate, endDate).stream()
         .map(transaction -> mapper.map(transaction, TransactionDto.class)).collect(Collectors.toList());
   }
 }
