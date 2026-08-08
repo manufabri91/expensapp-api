@@ -12,16 +12,21 @@ import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.CategoryTotalsDto;
 import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
 import com.manuelfabri.expenses.dto.SubTotalsPerSubcategoryDto;
+import com.manuelfabri.expenses.model.Account;
 import com.manuelfabri.expenses.model.CurrencyEnum;
+import com.manuelfabri.expenses.repository.AccountRepository;
 import com.manuelfabri.expenses.repository.TransactionRepository;
 import com.manuelfabri.expenses.service.TransactionStatisticsService;
 
 @Service
 public class TransactionStatisticsServiceImplementation implements TransactionStatisticsService {
   private TransactionRepository transactionRepository;
+  private AccountRepository accountRepository;
 
-  public TransactionStatisticsServiceImplementation(TransactionRepository transactionRepository) {
+  public TransactionStatisticsServiceImplementation(TransactionRepository transactionRepository,
+      AccountRepository accountRepository) {
     this.transactionRepository = transactionRepository;
+    this.accountRepository = accountRepository;
   }
 
   private Map<CurrencyEnum, BigDecimal> parseTotalsByCurrency(List<Object[]> results) {
@@ -133,8 +138,8 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
 
   @Override
   public Map<CurrencyEnum, BigDecimal> getBalancesByCurrency() {
-    List<Object[]> results = this.transactionRepository.getBalancesByCurrency();
-    return parseTotalsByCurrency(results);
+    return this.accountRepository.findActive().stream().collect(Collectors.groupingBy(Account::getCurrency,
+        Collectors.reducing(BigDecimal.ZERO, Account::getAccountBalance, BigDecimal::add)));
   }
 
   @Override

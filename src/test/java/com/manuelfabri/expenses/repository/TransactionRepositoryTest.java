@@ -26,12 +26,12 @@ import com.manuelfabri.expenses.model.User;
 /**
  * Note: assertions on the effect of {@code activateDuePendingTransactions} deliberately read back the
  * {@code pending}/{@code excludeFromTotals} columns via a scalar JPQL projection (see
- * {@link #currentPendingState(Long)}) rather than re-loading the {@code Transaction} entity itself. Loading the
- * entity fresh (e.g. via {@code entityManager.clear()} + {@code entityManager.find}) forces Hibernate to eagerly
- * re-resolve the {@code Account} association and evaluate its {@code accountBalance} {@code @Formula}, which is
- * hard-coded to the Liquibase column name ("initialbalance") and does not match the snake_case column
- * ("initial_balance") that this test's {@code ddl-auto: create-drop} schema generates — a pre-existing mismatch
- * unrelated to this test, so it's avoided rather than fixed here.
+ * {@link #currentPendingState(Long)}) rather than re-loading the {@code Transaction} entity itself, to keep this
+ * test decoupled from the {@code Account} association and its {@code accountBalance} {@code @Formula} (covered
+ * separately by {@code AccountRepositoryTest}). {@code Account.initialBalance} and {@code Transaction.excludeFromTotals}
+ * now carry explicit {@code @Column(name = ...)} mappings that match the Liquibase-managed physical column names
+ * ("initialbalance", "excludefromtotals") exactly, resolving what used to be a mismatch against the snake_case
+ * names this test's {@code ddl-auto: create-drop} schema previously generated for those two fields.
  */
 @DataJpaTest
 class TransactionRepositoryTest {

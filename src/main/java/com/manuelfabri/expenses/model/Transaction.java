@@ -40,7 +40,7 @@ public class Transaction extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "subcategory")
   private Subcategory subcategory;
-  @Column(nullable = false)
+  @Column(nullable = false, name = "excludefromtotals")
   private boolean excludeFromTotals = false;
   @Column(nullable = false)
   private boolean pending = false;

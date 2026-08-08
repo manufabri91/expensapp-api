@@ -52,9 +52,6 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(MONTH FROM t.eventDate) = :month AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.amount < 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getTransactionsTotalExpenses(@Param("year") int year, @Param("month") int month);
 
-  @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
-  List<Object[]> getBalancesByCurrency();
-
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND EXTRACT(YEAR FROM t.eventDate) = :year AND t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")
   List<Object[]> getBalancesByCurrency(@Param("year") int year);
 
