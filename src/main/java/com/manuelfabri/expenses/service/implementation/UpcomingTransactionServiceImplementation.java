@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.manuelfabri.expenses.dto.ProgrammedTransactionsDto;
@@ -36,14 +35,12 @@ public class UpcomingTransactionServiceImplementation implements UpcomingTransac
   private RecurrentTransactionRepository recurrentTransactionRepository;
   private TransactionRepository transactionRepository;
   private RecurrenceDateCalculator dateCalculator;
-  private ModelMapper mapper;
 
   public UpcomingTransactionServiceImplementation(RecurrentTransactionRepository recurrentTransactionRepository,
-      TransactionRepository transactionRepository, RecurrenceDateCalculator dateCalculator, ModelMapper mapper) {
+      TransactionRepository transactionRepository, RecurrenceDateCalculator dateCalculator) {
     this.recurrentTransactionRepository = recurrentTransactionRepository;
     this.transactionRepository = transactionRepository;
     this.dateCalculator = dateCalculator;
-    this.mapper = mapper;
   }
 
   private UpcomingTransactionItemDto fromRecurrence(RecurrentTransaction recurrence, Optional<LocalDate> dueDate) {
@@ -108,7 +105,7 @@ public class UpcomingTransactionServiceImplementation implements UpcomingTransac
     List<UpcomingTransactionGroupDto> groups = new ArrayList<>();
     for (Map.Entry<CurrencyEnum, List<UpcomingTransactionItemDto>> entry : byCurrency.entrySet()) {
       List<UpcomingTransactionItemDto> items = new ArrayList<>(entry.getValue());
-      items.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate));
+      items.sort(Comparator.comparing(UpcomingTransactionItemDto::getDate, Comparator.nullsLast(Comparator.naturalOrder())));
 
       BigDecimal total = items.stream().map(UpcomingTransactionItemDto::getSignedAmount).reduce(BigDecimal.ZERO,
           BigDecimal::add);

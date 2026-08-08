@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.modelmapper.ModelMapper;
 import com.manuelfabri.expenses.dto.ProgrammedTransactionsDto;
 import com.manuelfabri.expenses.dto.UpcomingTransactionGroupDto;
 import com.manuelfabri.expenses.dto.UpcomingTransactionItemDto;
@@ -62,7 +61,7 @@ class UpcomingTransactionServiceImplementationTest {
   @BeforeEach
   void setUp() {
     service = new UpcomingTransactionServiceImplementation(recurrentTransactionRepository, transactionRepository,
-        dateCalculator, new ModelMapper());
+        dateCalculator);
 
     currentUser = new User("owner-1", "owner@example.com", "owner", "Owner", "One", List.of());
     usdAccount = new Account(10L, "Checking USD", CurrencyEnum.USD, currentUser);

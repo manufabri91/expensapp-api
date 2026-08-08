@@ -302,6 +302,9 @@ public class TransactionServiceImplementation implements TransactionService {
   public TransactionDto confirm(Long id) {
     Transaction transaction = this.transactionRepository.findActiveById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
+    if (!transaction.getPending()) {
+      throw new IllegalArgumentException("TRANSACTION_NOT_PENDING");
+    }
     transaction.setExcludeFromTotals(false);
     transaction.setPending(false);
     return mapper.map(this.transactionRepository.save(transaction), TransactionDto.class);

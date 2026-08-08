@@ -31,7 +31,7 @@ public interface TransactionRepository extends BaseEntityRepository<Transaction>
 
   @Modifying
   @Transactional
-  @Query("update #{#entityName} t set t.pending = false, t.excludeFromTotals = false where t.pending = true and t.eventDate <= ?1")
+  @Query("update #{#entityName} t set t.pending = false, t.excludeFromTotals = false where t.pending = true and t.eventDate <= ?1 and t.deleted = false")
   void activateDuePendingTransactions(OffsetDateTime asOf);
 
   @Query("SELECT t.account.currency, SUM(t.amount) FROM #{#entityName} t WHERE t.deleted = false AND t.excludeFromTotals = false AND t.amount > 0 and t.owner.id = ?#{ principal?.id } GROUP BY t.account.currency")

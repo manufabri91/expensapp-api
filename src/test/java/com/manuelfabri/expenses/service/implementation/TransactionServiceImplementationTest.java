@@ -370,6 +370,27 @@ class TransactionServiceImplementationTest {
     assertThatThrownBy(() -> service.confirm(1L)).isInstanceOf(ResourceNotFoundException.class);
   }
 
+  @Test
+  void confirm_rejectsATransferLeg_becauseItIsNotPending() {
+    Transaction transferLeg = existingNonTransferTransaction();
+    transferLeg.setType(TransactionTypeEnum.TRANSFER);
+    transferLeg.setExcludeFromTotals(true);
+    transferLeg.setPending(false);
+    when(transactionRepository.findActiveById(1L)).thenReturn(Optional.of(transferLeg));
+
+    assertThatThrownBy(() -> service.confirm(1L)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void confirm_rejectsAPermanentlyExcludedTransaction_becauseItIsNotPending() {
+    Transaction permanentlyExcluded = existingNonTransferTransaction();
+    permanentlyExcluded.setExcludeFromTotals(true);
+    permanentlyExcluded.setPending(false);
+    when(transactionRepository.findActiveById(1L)).thenReturn(Optional.of(permanentlyExcluded));
+
+    assertThatThrownBy(() -> service.confirm(1L)).isInstanceOf(IllegalArgumentException.class);
+  }
+
   // --- getPendingTransactions ----------------------------------------------------------------------------------
 
   @Test
