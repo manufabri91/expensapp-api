@@ -14,6 +14,7 @@ public final class Urls {
   public static final String SUMMARY = "/summary";
   public static final String RECURRENT_TRANSACTION = "/recurrent-transaction";
   public static final String USER_SETTINGS = "/user-settings";
+  public static final String PRIVACY = "/privacy";
 
   // springdoc-openapi's default paths
   public static final String API_DOCS = "/v3/api-docs";

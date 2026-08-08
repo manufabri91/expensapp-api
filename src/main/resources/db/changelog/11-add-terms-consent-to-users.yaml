@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11-add-terms-consent-to-users
+      author: manufabri91
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: termsacceptedat
+                  type: timestamp with time zone
+              - column:
+                  name: termsversion
+                  type: varchar(50)

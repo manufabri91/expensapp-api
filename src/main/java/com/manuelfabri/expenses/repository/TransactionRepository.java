@@ -13,6 +13,8 @@ import com.manuelfabri.expenses.model.Transaction;
 import com.manuelfabri.expenses.model.User;
 
 public interface TransactionRepository extends BaseEntityRepository<Transaction> {
+  List<Transaction> findByOwnerAndDeletedFalse(User owner);
+  List<Transaction> findByOwner(User owner);
   List<Transaction> findByTypeAndOwnerAndDeletedFalse(String type, User owner);
   List<Transaction> findByLinkedTransactionAndOwnerAndDeletedFalse(Transaction linkedTransaction, User owner);
   List<Transaction> findByOwnerAndAccountAndDeletedFalse(User user, Account account);

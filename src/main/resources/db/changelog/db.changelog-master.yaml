@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/9-add-user-settings.yaml
   - include:
       file: db/changelog/10-add-pending-to-transactions.yaml
+  - include:
+      file: db/changelog/11-add-terms-consent-to-users.yaml

@@ -1,7 +1,10 @@
 package com.manuelfabri.expenses.service.implementation;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import org.springframework.stereotype.Service;
+import com.manuelfabri.expenses.constants.LegalVersions;
 import com.manuelfabri.expenses.dto.UserRegisterDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.Role;
@@ -22,6 +25,8 @@ public class UserServiceImplementation implements UserService {
   public User createUserFromRequest(UserRegisterDto userRegisterData, String userId, Role startingRole) {
     User user = new User(userId, userRegisterData.getEmail(), userRegisterData.getUserName(),
         userRegisterData.getFirstName(), userRegisterData.getLastName(), Collections.singletonList(startingRole));
+    user.setTermsAcceptedAt(Instant.now().atOffset(ZoneOffset.UTC));
+    user.setTermsVersion(LegalVersions.TERMS_VERSION);
     User savedUser = userRepository.save(user);
 
     return savedUser;
