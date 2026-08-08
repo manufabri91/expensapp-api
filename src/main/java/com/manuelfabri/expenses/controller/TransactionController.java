@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -65,6 +66,11 @@ public class TransactionController {
         minAmount, maxAmount, fromDate, toDate), HttpStatus.OK);
   }
 
+  @GetMapping("/pending")
+  public ResponseEntity<List<TransactionDto>> getPendingTransactions() {
+    return new ResponseEntity<>(transactionService.getPendingTransactions(), HttpStatus.OK);
+  }
+
   @GetMapping("/{year}/{month}")
   public ResponseEntity<List<TransactionDto>> getByYearAndMonth(@PathVariable int year, @PathVariable int month) {
     return new ResponseEntity<>(transactionService.getMonthlyTransactions(year, month), HttpStatus.OK);
@@ -90,6 +96,11 @@ public class TransactionController {
   public ResponseEntity<TransactionDto> deleteTransaction(@PathVariable Long id) {
     transactionService.deleteTransaction(id);
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @PatchMapping("/{id}/confirm")
+  public ResponseEntity<TransactionDto> confirm(@PathVariable Long id) {
+    return new ResponseEntity<>(transactionService.confirm(id), HttpStatus.OK);
   }
 
 }

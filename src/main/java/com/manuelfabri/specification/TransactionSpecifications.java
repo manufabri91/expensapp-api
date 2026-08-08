@@ -48,4 +48,12 @@ public class TransactionSpecifications {
   public static Specification<Transaction> notExcludedFromTotals() {
     return (root, query, cb) -> cb.isFalse(root.get("excludeFromTotals"));
   }
+
+  public static Specification<Transaction> isNotPending() {
+    return (root, query, cb) -> cb.isFalse(root.get("pending"));
+  }
+
+  public static Specification<Transaction> isPending() {
+    return (root, query, cb) -> cb.isTrue(root.get("pending"));
+  }
 }

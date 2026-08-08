@@ -31,10 +31,10 @@ public class Account extends BaseEntity {
   private CurrencyEnum currency;
   @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Transaction> transactions;
-  @Column(nullable = false, precision = 10, scale = 2)
+  @Column(nullable = false, precision = 10, scale = 2, name = "initialbalance")
   private BigDecimal initialBalance = BigDecimal.ZERO;
 
-  @Formula("(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.accountid = id) + initialbalance")
+  @Formula("(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.accountid = id AND t.deleted = false AND t.pending = false) + initialbalance")
   private BigDecimal accountBalance;
 
   public Account(Long id, String name, CurrencyEnum currency, User owner) {
