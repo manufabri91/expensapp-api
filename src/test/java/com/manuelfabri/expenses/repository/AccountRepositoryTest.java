@@ -71,6 +71,11 @@ class AccountRepositoryTest {
   }
 
   private Transaction persistTransaction(Account forAccount, BigDecimal amount, boolean excludeFromTotals) {
+    return persistTransaction(forAccount, amount, excludeFromTotals, false);
+  }
+
+  private Transaction persistTransaction(Account forAccount, BigDecimal amount, boolean excludeFromTotals,
+      boolean pending) {
     Transaction transaction = new Transaction();
     transaction.setOwner(owner);
     transaction.setType(TransactionTypeEnum.EXPENSE);
@@ -81,6 +86,7 @@ class AccountRepositoryTest {
     transaction.setCategory(category);
     transaction.setSubcategory(subcategory);
     transaction.setExcludeFromTotals(excludeFromTotals);
+    transaction.setPending(pending);
     return entityManager.persistAndFlush(transaction);
   }
 
@@ -116,10 +122,25 @@ class AccountRepositoryTest {
   }
 
   @Test
-  void accountBalance_excludesAnExcludeFromTotalsTransaction() {
+  void accountBalance_includesATransferLegShapedExcludeFromTotalsTransaction() {
+    // Transfer legs are written with excludeFromTotals = true but pending = false: the money genuinely moved,
+    // so it must still count toward the account's balance.
     account = persistAccount(new BigDecimal("100.00"));
     persistTransaction(account, new BigDecimal("-20.00"), false);
-    persistTransaction(account, new BigDecimal("-50.00"), true);
+    persistTransaction(account, new BigDecimal("-50.00"), true, false);
+
+    Account reloaded = reloadAccount();
+
+    assertThat(reloaded.getAccountBalance()).isEqualByComparingTo("30.00");
+  }
+
+  @Test
+  void accountBalance_excludesAPendingTransaction() {
+    // Pending transactions haven't happened yet (money hasn't moved), so they must not count until their date
+    // arrives and activateDuePendingTransactions clears the pending flag.
+    account = persistAccount(new BigDecimal("100.00"));
+    persistTransaction(account, new BigDecimal("-20.00"), false);
+    persistTransaction(account, new BigDecimal("-50.00"), true, true);
 
     Account reloaded = reloadAccount();
 

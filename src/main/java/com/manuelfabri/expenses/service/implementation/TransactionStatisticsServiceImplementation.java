@@ -1,8 +1,10 @@
 package com.manuelfabri.expenses.service.implementation;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -186,12 +188,18 @@ public class TransactionStatisticsServiceImplementation implements TransactionSt
   public List<MonthlyBalanceSummaryDto> getMonthlyHistory(int months, boolean includePending) {
     OffsetDateTime fromDate = OffsetDateTime.now().minusMonths(months - 1).withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
 
-    List<Object[]> incomeResults = includePending
-        ? this.transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)
-        : this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
-    List<Object[]> expenseResults = includePending
-        ? this.transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)
-        : this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    List<Object[]> incomeResults;
+    List<Object[]> expenseResults;
+    if (includePending) {
+      OffsetDateTime toDate =
+          OffsetDateTime.now().with(TemporalAdjusters.lastDayOfMonth()).with(LocalTime.MAX);
+      incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate);
+      expenseResults =
+          this.transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate);
+    } else {
+      incomeResults = this.transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
+      expenseResults = this.transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
+    }
 
     return buildMonthlyBalances(incomeResults, expenseResults);
   }

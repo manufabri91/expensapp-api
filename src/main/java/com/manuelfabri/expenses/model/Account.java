@@ -34,7 +34,7 @@ public class Account extends BaseEntity {
   @Column(nullable = false, precision = 10, scale = 2, name = "initialbalance")
   private BigDecimal initialBalance = BigDecimal.ZERO;
 
-  @Formula("(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.accountid = id AND t.deleted = false AND t.excludefromtotals = false) + initialbalance")
+  @Formula("(SELECT COALESCE(SUM(t.amount), 0) FROM transactions t WHERE t.accountid = id AND t.deleted = false AND t.pending = false) + initialbalance")
   private BigDecimal accountBalance;
 
   public Account(Long id, String name, CurrencyEnum currency, User owner) {

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.manuelfabri.expenses.dto.MonthlyBalanceSummaryDto;
@@ -143,10 +144,10 @@ class TransactionStatisticsServiceImplementationTest {
     Object[] currentMonthIncomeRow =
         new Object[] {now.getYear(), now.getMonthValue(), CurrencyEnum.USD, new BigDecimal("120.00")};
 
-    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class)))
-        .thenReturn(List.<Object[]>of(currentMonthIncomeRow));
-    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class)))
-        .thenReturn(List.<Object[]>of());
+    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.<Object[]>of(currentMonthIncomeRow));
+    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.<Object[]>of());
 
     List<MonthlyBalanceSummaryDto> result = service.getMonthlyHistory(1, true);
 
@@ -154,7 +155,8 @@ class TransactionStatisticsServiceImplementationTest {
     assertThat(result.get(0).getYear()).isEqualTo(now.getYear());
     assertThat(result.get(0).getMonth()).isEqualTo(now.getMonthValue());
     assertThat(result.get(0).getIncomes()).isEqualByComparingTo("120.00");
-    verify(transactionRepository).getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class));
+    verify(transactionRepository).getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class));
     verify(transactionRepository, never()).getTransactionsTotalIncomesByMonth(any(OffsetDateTime.class));
   }
 
@@ -180,39 +182,61 @@ class TransactionStatisticsServiceImplementationTest {
     assertThat(legacyResult.get(0).getExpenses()).isEqualByComparingTo(explicitFalseResult.get(0).getExpenses());
     assertThat(explicitFalseResult.get(0).getIncomes()).isEqualByComparingTo("300.00"); // the pending amount never
                                                                                           // surfaces here
-    verify(transactionRepository, never()).getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class));
-    verify(transactionRepository, never())
-        .getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class));
+    verify(transactionRepository, never()).getTransactionsTotalIncomesByMonthIncludingPending(
+        any(OffsetDateTime.class), any(OffsetDateTime.class));
+    verify(transactionRepository, never()).getTransactionsTotalExpensesByMonthIncludingPending(
+        any(OffsetDateTime.class), any(OffsetDateTime.class));
   }
 
   @Test
-  void getMonthlyHistory_withIncludePendingTrue_aRowForALaterMonthNeverAltersAnEarlierRequestedMonthsBucket() {
-    // Sanity check on the "no upper bound needed" reasoning behind the *IncludingPending repository queries:
-    // because those queries only add a lower bound (fromDate) and pending transactions are always dated "now" or
-    // later, a pending transaction due in a month beyond the current one can only ever create its OWN year/month
-    // bucket - it can never retroactively change the totals already computed for an earlier, in-range month.
+  void getMonthlyHistory_withIncludePendingTrue_passesAnUpperBoundClampedToTheEndOfTheCurrentMonth() {
+    // Product decision: includePending=true must only ever affect the CURRENT month's totals, never a future
+    // month beyond it. The service is responsible for computing and passing that upper bound (end of the current
+    // calendar month) into the *IncludingPending repository queries.
+    createService();
+    OffsetDateTime now = OffsetDateTime.now();
+
+    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.of());
+    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.of());
+
+    service.getMonthlyHistory(3, true);
+
+    ArgumentCaptor<OffsetDateTime> toDateCaptor = ArgumentCaptor.forClass(OffsetDateTime.class);
+    verify(transactionRepository).getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        toDateCaptor.capture());
+    OffsetDateTime toDate = toDateCaptor.getValue();
+
+    assertThat(toDate.getYear()).isEqualTo(now.getYear());
+    assertThat(toDate.getMonthValue()).isEqualTo(now.getMonthValue());
+    assertThat(toDate.getDayOfMonth()).isEqualTo(now.toLocalDate().lengthOfMonth());
+    assertThat(toDate).isAfterOrEqualTo(now);
+  }
+
+  @Test
+  void getMonthlyHistory_withIncludePendingTrue_aRowForALaterMonthDoesNotAppearInTheResponse() {
+    // Product decision: a pending transaction dated beyond the current month must be clamped out entirely by the
+    // repository query's new upper bound - it must not create its own bucket in the response.
     createService();
     OffsetDateTime now = OffsetDateTime.now();
     int laterYear = now.getMonthValue() == 12 ? now.getYear() + 1 : now.getYear();
     int laterMonth = now.getMonthValue() == 12 ? 1 : now.getMonthValue() + 1;
 
     Object[] currentMonthRow = new Object[] {now.getYear(), now.getMonthValue(), CurrencyEnum.USD, new BigDecimal("200.00")};
-    Object[] laterMonthRow = new Object[] {laterYear, laterMonth, CurrencyEnum.USD, new BigDecimal("999.00")};
+    // The repository query itself excludes later-month rows via the new toDate bound; the mock here simulates
+    // that already-filtered result to verify the service doesn't need to do any additional filtering itself.
 
-    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class)))
-        .thenReturn(List.<Object[]>of(currentMonthRow, laterMonthRow));
-    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class)))
-        .thenReturn(List.of());
+    when(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.<Object[]>of(currentMonthRow));
+    when(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(any(OffsetDateTime.class),
+        any(OffsetDateTime.class))).thenReturn(List.of());
 
     List<MonthlyBalanceSummaryDto> result = service.getMonthlyHistory(3, true);
 
-    assertThat(result).hasSize(2);
-    MonthlyBalanceSummaryDto currentBucket = result.stream()
-        .filter(dto -> dto.getMonth() == now.getMonthValue() && dto.getYear() == now.getYear()).findFirst()
-        .orElseThrow();
-    MonthlyBalanceSummaryDto laterBucket = result.stream()
-        .filter(dto -> dto.getMonth() == laterMonth && dto.getYear() == laterYear).findFirst().orElseThrow();
-    assertThat(currentBucket.getIncomes()).isEqualByComparingTo("200.00");
-    assertThat(laterBucket.getIncomes()).isEqualByComparingTo("999.00");
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getYear()).isEqualTo(now.getYear());
+    assertThat(result.get(0).getMonth()).isEqualTo(now.getMonthValue());
+    assertThat(result.stream().anyMatch(dto -> dto.getMonth() == laterMonth && dto.getYear() == laterYear)).isFalse();
   }
 }

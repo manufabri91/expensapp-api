@@ -202,12 +202,13 @@ class TransactionRepositoryTest {
   @Test
   void getTransactionsTotalIncomesByMonthIncludingPending_includesAPendingTransactionThatTheExistingMethodExcludes() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("100.00"),
         false);
 
     List<Object[]> existingResult = transactionRepository.getTransactionsTotalIncomesByMonth(fromDate);
     List<Object[]> includingPendingResult =
-        transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate);
+        transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate);
 
     assertThat(existingResult).isEmpty();
     assertThat(includingPendingResult).hasSize(1);
@@ -217,12 +218,13 @@ class TransactionRepositoryTest {
   @Test
   void getTransactionsTotalExpensesByMonthIncludingPending_includesAPendingTransactionThatTheExistingMethodExcludes() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("-50.00"),
         false);
 
     List<Object[]> existingResult = transactionRepository.getTransactionsTotalExpensesByMonth(fromDate);
     List<Object[]> includingPendingResult =
-        transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate);
+        transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate);
 
     assertThat(existingResult).isEmpty();
     assertThat(includingPendingResult).hasSize(1);
@@ -232,40 +234,93 @@ class TransactionRepositoryTest {
   @Test
   void getTransactionsTotalIncomesByMonthAndIncludingPendingVariant_bothExcludeATransferLeg() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, true, new BigDecimal("75.00"),
         false); // transfer leg: excludeFromTotals=true, pending=false
 
     assertThat(transactionRepository.getTransactionsTotalIncomesByMonth(fromDate)).isEmpty();
-    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate)).isEmpty();
   }
 
   @Test
   void getTransactionsTotalExpensesByMonthAndIncludingPendingVariant_bothExcludeATransferLeg() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, true, new BigDecimal("-75.00"),
         false); // transfer leg: excludeFromTotals=true, pending=false
 
     assertThat(transactionRepository.getTransactionsTotalExpensesByMonth(fromDate)).isEmpty();
-    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate)).isEmpty();
   }
 
   @Test
   void getTransactionsTotalIncomesByMonthAndIncludingPendingVariant_bothExcludeADeletedTransaction() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, false, new BigDecimal("60.00"),
         true); // deleted, would otherwise be a normal counted income
 
     assertThat(transactionRepository.getTransactionsTotalIncomesByMonth(fromDate)).isEmpty();
-    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate)).isEmpty();
   }
 
   @Test
   void getTransactionsTotalExpensesByMonthAndIncludingPendingVariant_bothExcludeADeletedTransaction() {
     OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
     persistTransaction(OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), false, false, new BigDecimal("-60.00"),
         true); // deleted, would otherwise be a normal counted expense
 
     assertThat(transactionRepository.getTransactionsTotalExpensesByMonth(fromDate)).isEmpty();
-    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate)).isEmpty();
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate)).isEmpty();
+  }
+
+  // --- getTransactionsTotal{Incomes,Expenses}ByMonthIncludingPending: new upper bound (toDate) clamping ------------
+
+  @Test
+  void getTransactionsTotalIncomesByMonthIncludingPending_excludesAPendingTransactionDatedAfterToDate() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("100.00"),
+        false); // pending, dated next month - beyond toDate
+
+    assertThat(transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate)).isEmpty();
+  }
+
+  @Test
+  void getTransactionsTotalExpensesByMonthIncludingPending_excludesAPendingTransactionDatedAfterToDate() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("-100.00"),
+        false); // pending, dated next month - beyond toDate
+
+    assertThat(transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate)).isEmpty();
+  }
+
+  @Test
+  void getTransactionsTotalIncomesByMonthIncludingPending_includesAPendingTransactionDatedWithinTheCurrentMonth() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("100.00"),
+        false); // pending, dated within the current month - within bounds
+
+    List<Object[]> result = transactionRepository.getTransactionsTotalIncomesByMonthIncludingPending(fromDate, toDate);
+
+    assertThat(result).hasSize(1);
+    assertThat((BigDecimal) result.get(0)[3]).isEqualByComparingTo("100.00");
+  }
+
+  @Test
+  void getTransactionsTotalExpensesByMonthIncludingPending_includesAPendingTransactionDatedWithinTheCurrentMonth() {
+    OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    OffsetDateTime toDate = OffsetDateTime.of(2024, 1, 31, 23, 59, 59, 0, ZoneOffset.UTC);
+    persistTransaction(OffsetDateTime.of(2024, 1, 20, 0, 0, 0, 0, ZoneOffset.UTC), true, true, new BigDecimal("-100.00"),
+        false); // pending, dated within the current month - within bounds
+
+    List<Object[]> result =
+        transactionRepository.getTransactionsTotalExpensesByMonthIncludingPending(fromDate, toDate);
+
+    assertThat(result).hasSize(1);
+    assertThat((BigDecimal) result.get(0)[3]).isEqualByComparingTo("-100.00");
   }
 }
