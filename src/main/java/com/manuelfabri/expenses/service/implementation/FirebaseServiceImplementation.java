@@ -142,6 +142,15 @@ public class FirebaseServiceImplementation implements FirebaseService {
   }
 
   @Override
+  public void deleteUser(String uid) {
+    try {
+      FirebaseAuth.getInstance().deleteUser(uid);
+    } catch (FirebaseAuthException firebaseException) {
+      throw new DependencyException("Firebase", firebaseException.getMessage());
+    }
+  }
+
+  @Override
   public FirebaseRefreshTokenResponseDto refreshToken(String refreshToken) {
     try {
       String url = "https://securetoken.googleapis.com/v1/token?key=" + apiKey;

@@ -1,5 +1,6 @@
 package com.manuelfabri.expenses.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,5 +23,7 @@ public class UserRegisterDto {
   private String firstName;
   @NotBlank(message = "MISSING_LAST_NAME")
   private String lastName;
+  @AssertTrue(message = "TERMS_NOT_ACCEPTED")
+  private boolean acceptedTerms;
 
 }
