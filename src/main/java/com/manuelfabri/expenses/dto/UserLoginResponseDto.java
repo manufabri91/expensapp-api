@@ -16,6 +16,8 @@ public class UserLoginResponseDto {
   private String token;
   private String refreshToken;
   private String tokenExpiresIn;
+  @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+  private String registrationStatus;
 
   public static UserLoginResponseDto fromFirebaseLoginResponse(FirebaseLoginResponseDto fbLoginResponse) {
     UserLoginResponseDto dto = new UserLoginResponseDto();

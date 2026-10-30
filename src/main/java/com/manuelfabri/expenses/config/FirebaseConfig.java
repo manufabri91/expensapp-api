@@ -29,7 +29,8 @@ public class FirebaseConfig {
     if (FirebaseApp.getApps().isEmpty()) {
       InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
       FirebaseOptions options =
-          FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(credentialsStream)).build();
+          FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(credentialsStream))
+              .setConnectTimeout(2000).setReadTimeout(3000).build();
       FirebaseApp.initializeApp(options);
     }
     return FirebaseApp.getInstance();
