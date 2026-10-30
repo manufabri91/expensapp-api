@@ -31,7 +31,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(DependencyException.class)
   @ResponseStatus(value = HttpStatus.FAILED_DEPENDENCY)
   public ResponseEntity<Object> handleFailedDependencyException(DependencyException ex, WebRequest request) {
-    return buildErrorResponse(ex, HttpStatus.FAILED_DEPENDENCY, request);
+    ErrorResponseDto response = new ErrorResponseDto("Failed to execute dependency");
+    response.setCode("DEPENDENCY_FAILURE");
+    return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body(response);
+  }
+
+  @ExceptionHandler(DuplicateEmailException.class)
+  public ResponseEntity<Object> handleDuplicateEmail(DuplicateEmailException ex, WebRequest request) {
+    ErrorResponseDto response = new ErrorResponseDto("USER_EXISTS");
+    response.setCode("USER_EXISTS");
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
 
   @ExceptionHandler(InvalidLoginException.class)

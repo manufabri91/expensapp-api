@@ -15,6 +15,7 @@ import lombok.Setter;
 public class ErrorResponseDto {
 
   private final String message;
+  private String code;
   private List<ValidationError> errors;
 
   @Getter

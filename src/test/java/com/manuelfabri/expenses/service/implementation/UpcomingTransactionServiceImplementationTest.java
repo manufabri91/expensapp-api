@@ -287,12 +287,12 @@ class UpcomingTransactionServiceImplementationTest {
     RecurrentTransaction usdRecurrence = recurrence(1L, TransactionTypeEnum.EXPENSE, new BigDecimal("30.00"),
         usdAccount, expenseCategory, RecurrenceStatusEnum.ACTIVE);
     when(recurrentTransactionRepository.findActiveVisible()).thenReturn(List.of(usdRecurrence));
-    when(dateCalculator.nextDueDate(usdRecurrence)).thenReturn(Optional.of(today.plusDays(2)));
+    when(dateCalculator.nextDueDate(usdRecurrence)).thenReturn(Optional.of(endOfMonth));
 
     Transaction usdTransactionEarlier = pendingTransaction(2L, TransactionTypeEnum.EXPENSE, new BigDecimal("-15.00"),
         usdAccount, expenseCategory, today.atStartOfDay().atOffset(ZoneOffset.UTC));
     Transaction eurTransaction = pendingTransaction(3L, TransactionTypeEnum.EXPENSE, new BigDecimal("-40.00"),
-        eurAccount, expenseCategory, today.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC));
+        eurAccount, expenseCategory, endOfMonth.atStartOfDay().atOffset(ZoneOffset.UTC));
     when(transactionRepository.findByOwnerAndPendingTrueAndEventDateBetweenAndDeletedFalse(eq(currentUser), any(),
         any())).thenReturn(List.of(usdTransactionEarlier, eurTransaction));
 
@@ -304,8 +304,8 @@ class UpcomingTransactionServiceImplementationTest {
     UpcomingTransactionGroupDto eurGroup = result.getExpenses().stream()
         .filter(group -> group.getCurrency().equals("EUR")).findFirst().orElseThrow();
 
-    // USD group: transaction (today) then recurrence (today+2), sorted ascending by date.
-    assertThat(usdGroup.getItems()).extracting(UpcomingTransactionItemDto::getSourceId).containsExactly(2L, 1L);
+    assertThat(usdGroup.getItems()).extracting(UpcomingTransactionItemDto::getSourceId).containsExactlyInAnyOrder(2L, 1L);
+    assertThat(usdGroup.getItems()).extracting(UpcomingTransactionItemDto::getDate).isSorted();
     assertThat(usdGroup.getTotal()).isEqualByComparingTo("-45.00");
 
     assertThat(eurGroup.getItems()).extracting(UpcomingTransactionItemDto::getSourceId).containsExactly(3L);

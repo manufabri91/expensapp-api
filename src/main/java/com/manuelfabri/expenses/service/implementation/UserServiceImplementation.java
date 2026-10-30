@@ -27,6 +27,7 @@ public class UserServiceImplementation implements UserService {
         userRegisterData.getFirstName(), userRegisterData.getLastName(), Collections.singletonList(startingRole));
     user.setTermsAcceptedAt(Instant.now().atOffset(ZoneOffset.UTC));
     user.setTermsVersion(LegalVersions.TERMS_VERSION);
+    // Repository save owns its transaction; commit failures reach the caller before Firebase sign-in begins.
     User savedUser = userRepository.save(user);
 
     return savedUser;
