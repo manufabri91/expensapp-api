@@ -14,6 +14,23 @@ class GlobalExceptionHandlerTest {
   private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
   @Test
+  void duplicateEmailReturnsConflictAndStableCode() {
+    var response = handler.handleDuplicateEmail(new DuplicateEmailException(), mock(WebRequest.class));
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    assertThat(((ErrorResponseDto) response.getBody()).getCode()).isEqualTo("USER_EXISTS");
+  }
+
+  @Test
+  void dependencyFailureRetains424WithSafeDistinctCode() {
+    var response = handler.handleFailedDependencyException(new DependencyException("Firebase", "secret"),
+        mock(WebRequest.class));
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FAILED_DEPENDENCY);
+    var body = (ErrorResponseDto) response.getBody();
+    assertThat(body.getCode()).isEqualTo("DEPENDENCY_FAILURE");
+    assertThat(body.getMessage()).doesNotContain("secret");
+  }
+
+  @Test
   void handleUnexpectedException_returnsInternalServerErrorWithGenericMessage() {
     ResponseEntity<Object> response =
         handler.handleUnexpectedException(new IllegalStateException("boom"), mock(WebRequest.class));

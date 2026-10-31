@@ -3,6 +3,10 @@ package com.manuelfabri.expenses.service.implementation;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -19,12 +23,14 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.manuelfabri.expenses.dto.FirebaseLoginResponseDto;
 import com.manuelfabri.expenses.dto.FirebaseRefreshTokenResponseDto;
 import com.manuelfabri.expenses.dto.UserRegisterDto;
 import com.manuelfabri.expenses.exception.DependencyException;
+import com.manuelfabri.expenses.exception.DuplicateEmailException;
 import com.manuelfabri.expenses.exception.InvalidLoginException;
 import com.manuelfabri.expenses.model.FirebaseTokenHolder;
 import com.manuelfabri.expenses.model.Role;
@@ -32,13 +38,17 @@ import com.manuelfabri.expenses.service.FirebaseService;
 
 @Service
 public class FirebaseServiceImplementation implements FirebaseService {
+  private static final Logger log = LoggerFactory.getLogger(FirebaseServiceImplementation.class);
   private final RestTemplate restTemplate;
   private final String apiKey;
+  private final FirebaseAuth firebaseAuth;
 
   public FirebaseServiceImplementation(@Value("${firebase.api-key}") String apiKey,
-      RestTemplateBuilder restTemplateBuilder) {
-    this.restTemplate = restTemplateBuilder.build();
+      RestTemplateBuilder restTemplateBuilder, FirebaseAuth firebaseAuth) {
+    this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(2))
+        .setReadTimeout(Duration.ofSeconds(3)).build();
     this.apiKey = apiKey;
+    this.firebaseAuth = firebaseAuth;
   }
 
   @Override
@@ -47,7 +57,7 @@ public class FirebaseServiceImplementation implements FirebaseService {
       throw new IllegalArgumentException("FirebaseTokenBlank");
     }
     try {
-      FirebaseToken authTask = FirebaseAuth.getInstance().verifyIdToken(token);
+      FirebaseToken authTask = firebaseAuth.verifyIdToken(token);
       return new FirebaseTokenHolder(authTask);
     } catch (FirebaseAuthException firebaseException) {
       throw new InvalidLoginException();
@@ -64,17 +74,30 @@ public class FirebaseServiceImplementation implements FirebaseService {
     createRequest.setEmailVerified(false);
     createRequest.setDisplayName(userDisplayName);
     createRequest.setPassword(userRegisterData.getPassword());
+    UserRecord user;
     try {
-      FirebaseAuth fbAuth = FirebaseAuth.getInstance();
-      var user = fbAuth.createUser(createRequest);
+      user = firebaseAuth.createUser(createRequest);
+    } catch (FirebaseAuthException firebaseException) {
+      if (firebaseException.getAuthErrorCode() == AuthErrorCode.EMAIL_ALREADY_EXISTS) {
+        throw new DuplicateEmailException();
+      }
+      throw dependencyFailure("create", firebaseException);
+    }
+    try {
       var udpateRequest = new UserRecord.UpdateRequest(user.getUid());
       Map<String, Object> claims = new HashMap<>();
       claims.put("roles", Collections.singletonList(startingRole.getSpringName()));
       udpateRequest.setCustomClaims(claims);
-      user = fbAuth.updateUser(udpateRequest);
+      user = firebaseAuth.updateUser(udpateRequest);
       return user;
-    } catch (FirebaseAuthException firebaseException) {
-      throw new DependencyException("Firebase", firebaseException.getMessage());
+    } catch (FirebaseAuthException | RuntimeException firebaseException) {
+      try {
+        firebaseAuth.deleteUser(user.getUid());
+      } catch (FirebaseAuthException | RuntimeException cleanupException) {
+        log.error("Registration stage=claims-cleanup requestId={} uid={} code={}",
+            MDC.get("requestId"), user.getUid(), safeFailureCode(cleanupException));
+      }
+      throw dependencyFailure("claims", firebaseException);
     }
   }
 
@@ -103,12 +126,17 @@ public class FirebaseServiceImplementation implements FirebaseService {
         throw new InvalidLoginException();
       }
 
+      if (response.getBody() == null) {
+        throw new DependencyException("Firebase API");
+      }
       return response.getBody();
 
     } catch (HttpClientErrorException exception) {
       throw new InvalidLoginException();
     } catch (RestClientException exception) {
-      throw new DependencyException("Firebase API", exception.getMessage());
+      log.warn("Firebase stage=login requestId={} cause={}", MDC.get("requestId"),
+          exception.getClass().getSimpleName());
+      throw new DependencyException("Firebase API");
     }
   }
 
@@ -135,7 +163,7 @@ public class FirebaseServiceImplementation implements FirebaseService {
   @Override
   public UserRecord getUserById(String uid) {
     try {
-      return FirebaseAuth.getInstance().getUser(uid);
+      return firebaseAuth.getUser(uid);
     } catch (FirebaseAuthException e) {
       throw new InvalidLoginException();
     }
@@ -144,9 +172,9 @@ public class FirebaseServiceImplementation implements FirebaseService {
   @Override
   public void deleteUser(String uid) {
     try {
-      FirebaseAuth.getInstance().deleteUser(uid);
+      firebaseAuth.deleteUser(uid);
     } catch (FirebaseAuthException firebaseException) {
-      throw new DependencyException("Firebase", firebaseException.getMessage());
+      throw dependencyFailure("delete", firebaseException);
     }
   }
 
@@ -176,7 +204,19 @@ public class FirebaseServiceImplementation implements FirebaseService {
     } catch (HttpClientErrorException exception) {
       throw new InvalidLoginException();
     } catch (RestClientException exception) {
-      throw new DependencyException("Firebase API", exception.getMessage());
+      log.warn("Firebase stage=refresh requestId={} cause={}", MDC.get("requestId"),
+          exception.getClass().getSimpleName());
+      throw new DependencyException("Firebase API");
     }
+  }
+
+  private DependencyException dependencyFailure(String stage, Exception exception) {
+    log.warn("Firebase stage={} requestId={} code={}", stage, MDC.get("requestId"), safeFailureCode(exception));
+    return new DependencyException("Firebase");
+  }
+
+  private Object safeFailureCode(Exception exception) {
+    return exception instanceof FirebaseAuthException firebaseException
+        ? firebaseException.getAuthErrorCode() : exception.getClass().getSimpleName();
   }
 }
