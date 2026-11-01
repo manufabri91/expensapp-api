@@ -1,30 +1,59 @@
 package com.manuelfabri.expenses.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.manuelfabri.expenses.dto.UserLoginDto;
 import com.manuelfabri.expenses.dto.UserLoginResponseDto;
 import com.manuelfabri.expenses.exception.*;
 import com.manuelfabri.expenses.service.AuthService;
 
+@WebMvcTest(controllers = AuthController.class, properties = "spring.jackson.use-jackson2-defaults=true")
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
-  private final AuthService auth = mock(AuthService.class);
+  @MockitoBean
+  private AuthService auth;
+  @Autowired
   private MockMvc mvc;
   private final String registration = """
       {"email":"new@example.com","password":"password123","userName":"new-user",
       "firstName":"New","lastName":"User","acceptedTerms":true}
       """;
 
-  @BeforeEach
-  void setUp() {
-    mvc = MockMvcBuilders.standaloneSetup(new AuthController(auth))
-        .setControllerAdvice(new GlobalExceptionHandler()).build();
+  @Test
+  void loginAcceptsCredentialsWithProductionJacksonDefaults() throws Exception {
+    var response = new UserLoginResponseDto();
+    response.setToken("access");
+    response.setRefreshToken("refresh");
+    when(auth.login(any())).thenReturn(response);
+
+    mvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("""
+        {"email":"existing@example.com","password":"password123"}
+        """))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.token").value("access"))
+        .andExpect(jsonPath("$.refreshToken").value("refresh"));
+
+    ArgumentCaptor<UserLoginDto> credentials = ArgumentCaptor.forClass(UserLoginDto.class);
+    verify(auth).login(credentials.capture());
+    assertThat(credentials.getValue().getEmail()).isEqualTo("existing@example.com");
+    assertThat(credentials.getValue().getPassword()).isEqualTo("password123");
+  }
+
+  @Test
+  void invalidLoginReturnsValidationErrorsWithoutCallingAuthentication() throws Exception {
+    mvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.errors").isArray());
+    verifyNoInteractions(auth);
   }
 
   @Test
