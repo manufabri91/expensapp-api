@@ -1,0 +1,91 @@
+name: Dependency and image security
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  schedule:
+    - cron: '43 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17.0.21+9'
+      - name: Test inventory coverage and failure handling
+        run: python3 scripts/test_security_inventory.py
+      - name: Run tests and inventory application, provider and plugin dependencies
+        run: |
+          python3 scripts/security_inventory.py --plugin-goal liquibase:help
+          mvn -B dependency:tree -DoutputFile=security-reports/dependency-tree.txt
+      - name: Scan resolved runtime, test, provider and plugin JARs
+        id: maven-scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.1
+          scan-type: rootfs
+          scan-ref: security-inventory
+          scanners: vuln
+          format: json
+          output: security-reports/maven-vulnerabilities.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: false
+      - name: Verify that JAR packages were scanned
+        if: always() && steps.maven-scan.outcome != 'skipped'
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('security-reports/maven-vulnerabilities.json').read_text())
+          if not any(result.get('Type') == 'jar' and result.get('Packages') for result in report.get('Results', [])):
+              raise SystemExit('No Java packages were detected; refusing an empty security scan.')
+          PY
+      - name: Retain dependency evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maven-security-reports
+          path: security-reports/
+          retention-days: 30
+
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build fresh runtime image
+        run: docker build --pull --tag expensapp-api:security .
+      - name: Scan final image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.1
+          image-ref: expensapp-api:security
+          scanners: vuln
+          format: json
+          output: image-vulnerabilities.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: false
+      - name: Generate runtime SBOM
+        if: always()
+        run: trivy image --format cyclonedx --output image-sbom.cdx.json expensapp-api:security
+      - name: Retain image evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-security-reports
+          path: |
+            image-vulnerabilities.json
+            image-sbom.cdx.json
+          retention-days: 30

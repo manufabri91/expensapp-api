@@ -5,6 +5,8 @@ spring:
     password: admin
   application:
     name: expensapp
+  jackson:
+    use-jackson2-defaults: true
   # JPA Properties
   jpa:
     # Liquibase (below) owns all schema changes; Hibernate only verifies the entities match what
@@ -13,12 +15,11 @@ spring:
     # and the app was silently running on Spring Boot's implicit default the whole time.
     hibernate:
       ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        naming:
-          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-          implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
   # Was previously nested under server.liquibase, which Spring Boot does not bind (correct prefix is
   # spring.liquibase) - another no-op that happened to match Liquibase's own defaults.
   liquibase:

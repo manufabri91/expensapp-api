@@ -1,11 +1,13 @@
 package com.manuelfabri.expenses.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,14 +16,17 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import com.manuelfabri.expenses.dto.CategoryDto;
 import com.manuelfabri.expenses.dto.SubcategoryDto;
 import com.manuelfabri.expenses.dto.TransactionDto;
+import com.manuelfabri.expenses.dto.TransactionRequestDto;
 import com.manuelfabri.expenses.exception.ResourceNotFoundException;
 import com.manuelfabri.expenses.model.CurrencyEnum;
 import com.manuelfabri.expenses.model.TransactionTypeEnum;
@@ -33,7 +38,7 @@ class TransactionControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
-  @MockBean
+  @MockitoBean
   private TransactionService transactionService;
 
   private TransactionDto sampleDto(Long id) {
@@ -58,6 +63,25 @@ class TransactionControllerTest {
     dto.setSubcategory(subcategory);
 
     return dto;
+  }
+
+  @Test
+  void create_acceptsLegacyJsonAndReturnsIsoTimestampAndEnumNames() throws Exception {
+    when(transactionService.createTransaction(any())).thenReturn(sampleDto(1L));
+
+    mockMvc.perform(post("/transaction").contentType(MediaType.APPLICATION_JSON).content("""
+        {"eventDate":"2024-01-01T00:00:00Z","description":"Weekly groceries",
+         "amount":-45.50,"accountId":10,"type":"EXPENSE"}
+        """)).andExpect(status().isCreated())
+        .andExpect(jsonPath("$.eventDate").value("2024-01-01T00:00:00Z"))
+        .andExpect(jsonPath("$.type").value("EXPENSE"))
+        .andExpect(jsonPath("$.currencyCode").value("USD"));
+
+    ArgumentCaptor<TransactionRequestDto> request = ArgumentCaptor.forClass(TransactionRequestDto.class);
+    verify(transactionService).createTransaction(request.capture());
+    assertThat(request.getValue().getEventDate()).isEqualTo(OffsetDateTime.parse("2024-01-01T00:00:00Z"));
+    assertThat(request.getValue().getAmount()).isEqualByComparingTo("-45.50");
+    assertThat(request.getValue().getType()).isEqualTo(TransactionTypeEnum.EXPENSE);
   }
 
   @Test

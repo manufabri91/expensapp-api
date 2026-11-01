@@ -8,7 +8,7 @@
 
 ## Java Style
 
-- Java 17, Spring Boot 3.1.12, Maven.
+- Java 17, Spring Boot 4.1.2, Maven.
 - Use descriptive names for classes, methods, and variables.
 - Never abbreviate a name down to initials (e.g. `final User u = userService.getById(1);` is forbidden). Use the full
   word instead (`User user = ...`), or a qualifying suffix when the plain name is already taken in scope (`userOne`,
