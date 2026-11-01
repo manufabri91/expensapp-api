@@ -16,7 +16,7 @@ jobs:
       # fetch-depth: 0 is required for "Determine release version" below to see existing tags -
       # actions/checkout's default is a shallow, tag-less clone (fetch-tags: true alone doesn't
       # reliably fix this - see https://github.com/actions/checkout/issues/1781).
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -94,5 +94,5 @@ jobs:
       SVC_ID: expensapp-api
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: railway redeploy -y --service=${{ env.SVC_ID }}
