@@ -9,7 +9,7 @@ import com.manuelfabri.expenses.exception.*;
 import com.manuelfabri.expenses.model.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -92,8 +92,8 @@ class FirebaseServiceImplementationTest {
 
   @Test
   void configuresBoundedConnectionAndReadTimeouts() {
-    verify(builder).setConnectTimeout(java.time.Duration.ofSeconds(2));
-    verify(builder).setReadTimeout(java.time.Duration.ofSeconds(3));
+    verify(builder).connectTimeout(java.time.Duration.ofSeconds(2));
+    verify(builder).readTimeout(java.time.Duration.ofSeconds(3));
   }
 
   @Test

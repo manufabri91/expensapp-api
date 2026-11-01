@@ -35,3 +35,8 @@ build/
 ### VS Code ###
 .vscode/
 .env
+
+### Local security scan output ###
+security-inventory/
+security-reports/
+__pycache__/

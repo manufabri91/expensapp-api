@@ -6,7 +6,7 @@
 REST API for **Expenses App** — a personal expense/income tracker with multi-account, multi-currency support,
 category/subcategory budgeting, transfers between accounts, and recurring (scheduled) transactions.
 
-Built with Spring Boot 3 / Java 17, backed by PostgreSQL, authenticated via Firebase.
+Built with Spring Boot 4.1 / Java 17, backed by PostgreSQL, authenticated via Firebase.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ Built with Spring Boot 3 / Java 17, backed by PostgreSQL, authenticated via Fire
 | Concern              | Choice                                                                     |
 | -------------------- | --------------------------------------------------------------------------- |
 | Language / runtime   | Java 17                                                                    |
-| Framework            | Spring Boot 3.1.12 (Web, Data JPA, Security, Validation, Actuator)         |
+| Framework            | Spring Boot 4.1.2 (Web MVC, Data JPA, Security, Validation, Actuator)     |
 | Database             | PostgreSQL, versioned with Liquibase                                       |
 | Auth                 | Firebase Authentication (ID token verification via Firebase Admin SDK)    |
 | DTO ↔ Entity mapping | ModelMapper (not MapStruct — see [AGENTS.md](AGENTS.md))                   |
@@ -182,12 +182,28 @@ the `app.cors.allowed-origins` property (defaults to `http://localhost:3000` if 
 - Unit tests use JUnit 5, AssertJ, and Mockito — no Spring context unless the thing under test genuinely needs
   one (`@DataJpaTest` for repository queries, `@WebMvcTest` for controller slices). See
   [AGENTS.md](AGENTS.md#testing) for the full testing conventions and current gaps (there's no
-  integration/end-to-end test suite yet — a known, tracked gap, not a blocker for individual PRs).
+  Firebase-backed end-to-end suite yet; the PostgreSQL startup check is described below).
 - Run the full suite:
 
   ```bash
   ./mvnw test
   ```
+
+- To validate Liquibase migrations, Hibernate mappings and the real security chains against a disposable
+  PostgreSQL database, run the opt-in startup test. It uses Firebase mocks and never calls a production service.
+  Use a new, empty database and pass its credentials explicitly:
+
+  ```bash
+  mvn -Dtest=PostgreSqlStartupTest \
+    -Dexpenses.postgres.url=jdbc:postgresql://localhost:5432/expenses_security \
+    -Dexpenses.postgres.username=postgres \
+    -Dexpenses.postgres.password=local-test-password test
+  ```
+
+  CI supplies an isolated PostgreSQL service and runs this test automatically. Local runs skip it when
+  `expenses.postgres.url` is absent. Java 17.0.21+9 is pinned in CI and installed from checksummed Temurin archives
+  in the Docker build and runtime stages; update both checksums on future upgrades. The archive URLs currently
+  target Linux amd64.
 
 - **Coverage is enforced via [Codecov](https://codecov.io), not a hand-maintained per-class list.** Two checks run
   on every PR (configured in `codecov.yml`):
@@ -214,11 +230,12 @@ the `app.cors.allowed-origins` property (defaults to `http://localhost:3000` if 
 
 ## CI/CD
 
-Three GitHub Actions workflows:
+GitHub Actions workflows:
 
 | Workflow                    | Trigger                        | What it does                                                                 |
 | ---------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
 | `ci-build-test.yml`         | PR → `main` or `develop`         | `mvn verify` (build + test), uploads the JaCoCo report as an artifact and to Codecov |
+| `security.yml`              | PR, push, weekly or manual      | Scans the actual application/test/plugin classpaths and rebuilt runtime image; see [security maintenance](SECURITY.md) |
 | `cd-merges-develop.yml`     | Push → `develop`                 | Builds a `beta`-tagged Docker image, pushes to Docker Hub, redeploys the `dev` Railway environment |
 | `cd-merges-main.yml`        | Push → `main`                    | Builds a versioned Docker image, pushes to Docker Hub, tags the release in git, redeploys the production Railway environment |
 

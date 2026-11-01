@@ -7,7 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.manuelfabri.expenses.constants.Urls;
 import com.manuelfabri.expenses.dto.ErrorResponseDto;
 import com.manuelfabri.expenses.exception.InvalidLoginException;

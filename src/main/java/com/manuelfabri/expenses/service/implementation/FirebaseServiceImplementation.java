@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,8 +45,8 @@ public class FirebaseServiceImplementation implements FirebaseService {
 
   public FirebaseServiceImplementation(@Value("${firebase.api-key}") String apiKey,
       RestTemplateBuilder restTemplateBuilder, FirebaseAuth firebaseAuth) {
-    this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(2))
-        .setReadTimeout(Duration.ofSeconds(3)).build();
+    this.restTemplate = restTemplateBuilder.connectTimeout(Duration.ofSeconds(2))
+        .readTimeout(Duration.ofSeconds(3)).build();
     this.apiKey = apiKey;
     this.firebaseAuth = firebaseAuth;
   }
