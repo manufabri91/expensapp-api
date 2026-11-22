@@ -20,7 +20,7 @@
 	<description>Expenses REST Api</description>
 	<properties>
 		<java.version>17</java.version>
-		<spring-cloud.version>2025.1.4</spring-cloud.version>
+		<spring-cloud.version>2025.1.5</spring-cloud.version>
 		<guava.version>33.8.0-jre</guava.version>
 	</properties>
 	<dependencies>
